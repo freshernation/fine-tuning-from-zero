@@ -144,5 +144,5 @@ says the rows do not sum to one, re-read the trap above before you ask anyone.
 
 ## Before tomorrow
 
-Write one line in `logs/signal-log.md`: which of the four did you get wrong first, and
-what shape did you think it was?
+Add today's row to `logs/signal-log.md`. Under "hardest thing", say which of the four
+you got wrong first, and what shape you thought it was.

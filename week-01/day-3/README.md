@@ -154,5 +154,6 @@ Write `estimate_loss` first. `train` calls it.
 
 ## Before tomorrow
 
-In `logs/signal-log.md`: without looking, write the five lines in order, then one
-sentence on what would happen if you swapped lines 4 and 5.
+Add today's row to `logs/signal-log.md`. Then, on paper and without looking: the five
+lines in order, and one sentence on what would happen if you swapped lines 4 and 5.
+Bring the paper to tomorrow's live hour.
