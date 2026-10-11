@@ -1,0 +1,12 @@
+# Week 1 needs only these two. The rest arrive as the course does.
+pytest>=8.0
+torch>=2.2
+
+# The course's own `tunelab` package (the folder at the repo root), installed in
+# place so `from tunelab.loop import train` works from any folder.
+-e .
+
+# torch uses numpy when it is there and warns when it is not. Intel Macs are
+# stuck on an older torch that needs numpy 1.x.
+numpy<2; sys_platform == "darwin" and platform_machine == "x86_64"
+numpy; sys_platform != "darwin" or platform_machine != "x86_64"

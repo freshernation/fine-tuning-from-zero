@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.env
+.DS_Store
+.vscode/
+_variant_*
+
+
+# --- Instructor materials -------------------------------------------------
+# instructor/ holds the reference solutions and the runbooks. It MUST NOT reach
+# the repo your students clone. Keep it in its own private repository.
+instructor/
+
+# Checkpoints
+*.pt
