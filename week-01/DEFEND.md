@@ -37,7 +37,4 @@ Words first, keyboard second.
 have them run it and compare with their drawing.
 
 Then seed one: move `model.train()` out of `estimate_loss`. Ask what a user of the
-function would notice, and when. (For this model: nothing, ever — a bigram has no
-layer that behaves differently in eval mode. The right answer is "nothing yet, and
-that is why it is dangerous": it becomes a real bug the first time the model contains
-dropout, in week 2.)
+function would notice, and when.

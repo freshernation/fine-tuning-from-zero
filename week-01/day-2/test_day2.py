@@ -7,7 +7,7 @@ import torch
 
 
 def test_grad_by_hand_matches_the_formula(load):
-    # loss = (w*x - y)**2, so d(loss)/dw = 2*x*(w*x - y)
+    # loss = (w*x - y)**2. The slope at w=2, x=3, y=10 is -24: derive it on paper.
     assert load("descent.py").grad_by_hand(w=2.0, x=3.0, y=10.0) == -24.0
 
 

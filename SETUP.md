@@ -26,6 +26,9 @@ cd YOUR-REPO
 
 You push to your copy every day. Your instructor reads it.
 
+Keep the repository **public**, or Colab will not be able to clone it without extra
+setup. If it has to be private, tell your instructor before Friday of week 1.
+
 ## 3. Create the virtual environment
 
 ```bash
@@ -43,10 +46,10 @@ python3 -c "import torch, tunelab; print(torch.__version__)"
 pytest week-01
 ```
 
-The first line prints a version number. The second prints **20 failed**.
+The first line prints a version number. The second prints **27 failed**.
 
 That is correct. Every test in this course fails until you write the code it is
-testing. Twenty failures with `NotImplementedError` means your setup is perfect.
+testing. Twenty-seven failures with `NotImplementedError` means your setup is perfect.
 
 If you see errors about imports instead of `NotImplementedError`, stop and ask.
 

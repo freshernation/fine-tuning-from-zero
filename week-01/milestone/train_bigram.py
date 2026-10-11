@@ -35,6 +35,8 @@ def run(text, steps=2000, seed=0):
 
 def overfit_one_batch(model, x, y, steps=500, lr=0.1):
     """Train on the SAME batch (x, y) for every step. Return the final loss, a float.
+    Use AdamW, as your loop does: plain gradient descent gets there too, but not
+    in 500 steps.
 
     Not a way to get a good model. A way to find out whether the model and the
     loop are able to learn anything at all.

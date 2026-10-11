@@ -47,14 +47,12 @@ Nudge `w` up a hair, from 2 to 2.001. The loss goes from 16 to about 15.976. It 
 That slope is the gradient. Its sign tells you the direction (negative: increasing `w`
 reduces the loss) and its size tells you how steep.
 
-You do not have to nudge. Calculus gives the slope exactly:
+You do not have to nudge. Calculus gives the slope exactly, and you already have what
+you need: the loss is *something squared*, and the something is `w*x - y`. The chain
+rule says: the slope of the outside, times the slope of the inside.
 
-```
-loss        = (w*x - y)²
-d(loss)/dw  = 2 * x * (w*x - y)
-```
-
-Derive that on paper before you go on. It is the chain rule, once.
+Derive it on paper now. Check it against the nudge: at `w = 2`, `x = 3`, `y = 10` your
+formula must give **−24**. That formula is exercise 1.
 
 ### One step
 
@@ -88,9 +86,10 @@ Three things to hold on to:
 
 ### Two traps
 
-**Gradients add up.** Call `.backward()` twice and `.grad` holds the sum of both. That
-is deliberate, and it is almost never what you want inside a loop. After every update
-you zero it:
+**Gradients add up.** `.backward()` does not replace what is in `.grad`; it adds to it.
+So on the second trip round a loop — a fresh loss, a fresh `.backward()` — `.grad`
+holds the sum of both trips. That is deliberate, and it is almost never what you want.
+After every update you zero it:
 
 ```python
 a.grad.zero_()

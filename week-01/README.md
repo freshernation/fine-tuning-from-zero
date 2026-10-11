@@ -70,6 +70,6 @@ PyTorch.
 ## What this week is not about
 
 A good model. Speed. GPUs. Anything in the "not yet" column of `FENCE.md` — attention
-and transformers above all, however tempting the second half of that video is. You
+and transformers above all, however tempting the rest of Thursday's video is. You
 will train something small and bad this week and that is correct. A bad model you
 understand completely beats a good one you downloaded, and it is not close.

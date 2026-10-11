@@ -17,7 +17,7 @@ model is the loop you write today.
 ## Read first
 
 - [ ] [Optimizing model parameters](https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html) — the whole page · 20 min
-- [ ] [Build the neural network](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) — the first half, up to "Model layers" · 10 min
+- [ ] [Build the neural network](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) — the first half, up to "Model Layers". Skip the lines about `device`; that is week 2 · 10 min
 
 ---
 
@@ -39,8 +39,10 @@ class Line(nn.Module):
         return out, loss
 ```
 
-`model(x, y)` calls `forward`. `model.parameters()` hands back every tensor inside it
-that has `requires_grad=True` — yesterday's `w` and `b`, found for you.
+`model(x, y)` calls `forward`. `model.parameters()` hands back every trainable tensor
+the model owns — yesterday's `w` and `b`, found for you. (Every one of them is being
+trained this week. In week 3 you will switch some of them off, and that will be the
+whole trick.)
 
 **The convention for this whole course:** a model takes `(x, targets)` and returns
 `(output, loss)`. If you give it no targets, the loss is `None`. Every model you write
@@ -74,18 +76,21 @@ formula this week. You need to know it does the same job as your two lines.
 ### The five lines
 
 ```
-        ┌──────────────────────────────────────────────┐
-        │                                              │
-        ▼                                              │
-   1. forward     out, loss = model(x, y)              │
-   2. loss        (it came back from the model)        │
-   3. backward    loss.backward()                      │
-   4. step        optimizer.step()                     │
-   5. zero        optimizer.zero_grad()  ──────────────┘
+        ┌─────────────────────────────────────────────────────────┐
+        │                                                         │
+        ▼                                                         │
+   1. forward     give the model a batch                          │
+   2. loss        get back one number: how wrong                  │
+   3. backward    work out every parameter's slope                │
+   4. step        move every parameter a little downhill          │
+   5. zero        clear the slopes, ready for the next batch  ────┘
 ```
 
-Say them in order until you can do it without looking: **forward, loss, backward,
-step, zero.** On Friday you will be asked to.
+You have met a line of code for each of these, today or yesterday. Putting them in
+order, in a loop, is the exercise.
+
+Say them until you can do it without looking: **forward, loss, backward, step, zero.**
+On Friday you will be asked to.
 
 ### Why you hold data back
 
@@ -98,17 +103,14 @@ is the only number that tells you whether it learned anything that transfers.
 
 ### Measuring without disturbing
 
-Measuring the loss is not training. Three things make sure it leaves no trace:
+Measuring the loss is not training. A measurement must leave no trace, and three
+things make sure of it:
 
-```python
-model.eval()                  # some layers behave differently when training; turn that off
-with torch.no_grad():         # do not build the machinery for gradients
-    _, loss = model(x, y)
-model.train()                 # put it back
-```
-
-Forget `model.train()` and the next thousand steps train a model that thinks it is
-being tested. Nothing crashes. It just learns worse, and you will not know why.
+| | What it does | If you forget |
+|---|---|---|
+| `model.eval()` | Some layers behave differently while training. This turns that off. | The number you measure is not the number the model would really score. |
+| `torch.no_grad()` | Tells torch not to build the machinery for gradients. You met it yesterday. | Slower, more memory, and slopes left lying around for the next step to trip on. |
+| `model.train()` | Puts the model back afterwards. | The next thousand steps train a model that thinks it is being tested. Nothing crashes. It just learns worse, and you will not know why. |
 
 One batch is a noisy measurement, so `estimate_loss` averages over several.
 

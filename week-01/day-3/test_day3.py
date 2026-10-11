@@ -50,6 +50,29 @@ def test_estimate_loss_is_a_float_and_changes_nothing():
     assert all(p.grad is None for p in model.parameters())
 
 
+def test_estimate_loss_reads_only_the_split_it_was_asked_for():
+    asked = []
+
+    def spy(split):
+        asked.append(split)
+        return get_batch(split)
+
+    estimate_loss(Line(), spy, "val", batches=7)
+    assert asked == ["val"] * 7
+
+
+def test_estimate_loss_measures_in_eval_mode_without_gradients():
+    seen = []
+
+    class Watched(Line):
+        def forward(self, x, targets=None):
+            seen.append((self.training, torch.is_grad_enabled()))
+            return super().forward(x, targets)
+
+    estimate_loss(Watched(), get_batch, "val", batches=3)
+    assert seen == [(False, False)] * 3, "expected eval mode and no_grad on every batch"
+
+
 def test_estimate_loss_puts_the_model_back_in_train_mode():
     model = Line()
     model.train()

@@ -8,7 +8,8 @@ not need to have trained anything, ever. You do need about four hours a day.
 
 Everything in this repo is aimed at one outcome: **you can write LoRA on a whiteboard,
 and a model you tuned is running inside your own agent, beating the prompted baseline
-on an eval you froze before training.** If something looks missing, it was cut on
+on an eval you froze before training.** (The agent is the notes agent from Agent From
+Zero. If you did not take that course, a starter copy arrives in week 4.) If something looks missing, it was cut on
 purpose — see `CUT_LIST.md`.
 
 ---

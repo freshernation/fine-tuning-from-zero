@@ -11,7 +11,7 @@ they are the ones you learn from, and week 5's milestone asks to see one.
 
 | Date | Week | What was run | Steps | Train loss | Val loss | Eval score | Note |
 |---|---|---|---|---|---|---|---|
-| 2026-10-16 | 1 | bigram on tiny.txt, seed 0 *(example — delete this one)* | 2000 | 2.46 | 2.54 | — | "By, d ravine homoreZANo f k, l." |
+| 2026-10-16 | 1 | bigram on tiny.txt, seed 0 *(example — delete this one)* | 2000 | 2.50 | 2.54 | — | "By, d ravine homoreZANo f k, l." |
 |  |  |  |  |  |  |  |  |
 
 **Eval score** stays empty until week 4. From then on it is the number that matters,

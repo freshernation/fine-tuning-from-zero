@@ -19,7 +19,7 @@ distinct ones — and asks for a validation loss **under 2.59**.
 
 **2. `overfit_one_batch(model, x, y, steps=500, lr=0.1)`**
 
-Train on one batch, the same one, every step. Return the final loss.
+Train on one batch, the same one, every step, with AdamW. Return the final loss.
 
 The test hands you a batch where `a` is always followed by `b`, `b` by `c`, `c` by
 `a`, and asks for a loss **under 0.01**.
@@ -69,7 +69,7 @@ an hour of changing the learning rate.
 
 ## Done means
 
-- [ ] `pytest week-01 -v` — 20 passed
+- [ ] `pytest week-01 -v` — 27 passed
 - [ ] The Colab notebook ran top to bottom
 - [ ] A row in `logs/run-log.md`
 - [ ] Committed and pushed

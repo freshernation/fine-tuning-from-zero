@@ -23,9 +23,9 @@ Copy the block, fill it in, newest at the top.
 ### 2026-10-12 — week-01/day-1/shapes.py   *(example — delete this one)*
 - Doing:      dividing each row by its own sum
 - Expected:   every row adds up to 1
-- Got:        no error, but the test said the rows sum to 0.6 and 1.6
-- Tried:      printed the result; then printed the shape of the sums: (2,), not (2, 1)
-- Resolved:   my own — the sums lined up with the columns. Needed keepdim=True
+- Got:        no error, but the test said the rows do not sum to 1
+- Tried:      printed the result; then printed the shape of the sums on its own line
+- Resolved:   my own — the sums were lining up with the columns, not the rows
 - Minutes:    17
 
 ---

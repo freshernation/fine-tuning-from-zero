@@ -23,7 +23,7 @@ def train(model, get_batch, steps, lr, eval_every=100):
 
     The history is a list of dicts, one per measurement:
 
-        {"step": 0, "train": 4.21, "val": 4.19}
+        {"step": 0, "train": 4.61, "val": 4.59}
 
     Measure at step 0 (before any update), every `eval_every` steps, and at the
     last step (steps - 1). Both numbers come from estimate_loss.

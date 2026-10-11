@@ -12,10 +12,10 @@ def test_row_means(load):
 
 
 def test_normalize_rows_sums_to_one(load):
-    x = torch.tensor([[1., 1., 2.], [3., 0., 1.]])
+    x = torch.tensor([[1., 1., 2.], [3., 0., 1.], [2., 2., 4.]])
     out = load("shapes.py").normalize_rows(x)
-    assert out.shape == (2, 3)
-    assert torch.allclose(out.sum(dim=1), torch.ones(2))
+    assert out.shape == (3, 3)
+    assert torch.allclose(out.sum(dim=1), torch.ones(3)), f"rows sum to {out.sum(dim=1).tolist()}"
     assert torch.allclose(out[0], torch.tensor([.25, .25, .5]))
 
 

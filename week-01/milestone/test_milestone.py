@@ -21,6 +21,13 @@ def test_bigram_reaches_target_validation_loss(load):
     assert len(result["sample"]) == 200
 
 
+def test_same_seed_same_run(load):
+    run = load("train_bigram.py").run
+    first = run(TEXT[:20000], steps=50, seed=3)
+    again = run(TEXT[:20000], steps=50, seed=3)
+    assert first["sample"] == again["sample"]
+
+
 def test_overfitting_one_batch_drives_loss_to_zero(load):
     torch.manual_seed(0)
     # a batch where every character has exactly one possible successor: a->b->c->a
