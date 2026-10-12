@@ -26,6 +26,7 @@ def tiny_tokenizer():
         additional_special_tokens=["<|im_start|>"],
     )
     tokenizer.chat_template = TEMPLATE.read_text()
+    tokenizer.model_input_names = ["input_ids", "attention_mask"]     # as the real tokenizer does
     return tokenizer
 
 
