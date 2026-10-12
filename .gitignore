@@ -16,3 +16,7 @@ instructor/
 
 # Checkpoints
 *.pt
+
+# Training runs and model files: large, and reproducible from your data and scripts
+runs/
+*.gguf
