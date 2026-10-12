@@ -80,14 +80,38 @@ def test_gpt_does_look_back():
 
 
 def test_gpt_rejects_sequences_longer_than_block_size():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="(?s)(8.*9|9.*8)"):   # the message names both lengths
         GPT(**CFG)(torch.zeros((1, 9), dtype=torch.long))
+
+
+class Watched(GPT):
+    """A GPT that notes what it was shown, and in what mode, every time it is run."""
+
+    def forward(self, idx, targets=None):
+        self.seen.append((idx.clone(), self.training))
+        return super().forward(idx, targets)
+
+
+def watched(**extra):
+    model = Watched(**CFG, **extra)
+    model.seen = []
+    return model
 
 
 def test_generate_can_run_past_block_size():
     torch.manual_seed(0)
     out = GPT(**CFG).generate(torch.zeros((2, 1), dtype=torch.long), max_new_tokens=20)
     assert out.shape == (2, 21) and out.max() < 11
+
+
+def test_generate_shows_the_model_the_most_recent_tokens():
+    torch.manual_seed(0)
+    model = watched()
+    out = model.generate(torch.zeros((1, 1), dtype=torch.long), max_new_tokens=12)
+    assert len(model.seen) == 12
+    for i, (shown, _) in enumerate(model.seen):
+        so_far = out[:, : 1 + i]                         # everything that existed at that moment
+        assert torch.equal(shown, so_far[:, -8:]), f"call {i}: expected the last 8 tokens so far"
 
 
 def test_generate_keeps_what_it_was_given():
@@ -111,16 +135,27 @@ def test_generate_predicts_from_the_last_position():
 
 
 def test_generate_leaves_the_model_as_it_found_it():
-    model = GPT(**CFG, dropout=0.5)
+    model = watched(dropout=0.5)
     model.train()
     before = [p.clone() for p in model.parameters()]
-    modes = []
-    model.register_forward_hook(lambda module, inputs, output: modes.append(module.training))
     model.generate(torch.zeros((1, 1), dtype=torch.long), max_new_tokens=3)
-    assert modes == [False] * 3, "dropout must be off while sampling"
+    assert [mode for _, mode in model.seen] == [False] * 3, "dropout must be off while sampling"
     assert model.training, "and the model handed back in training mode, as it arrived"
     assert all(torch.equal(a, b) for a, b in zip(before, model.parameters()))
     assert all(p.grad is None for p in model.parameters())
+
+
+def test_generate_does_not_switch_on_training_mode():
+    model = GPT(**CFG)
+    model.eval()
+    model.generate(torch.zeros((1, 1), dtype=torch.long), max_new_tokens=2)
+    assert not model.training, "it arrived in eval mode and should leave in eval mode"
+
+
+def test_gpt_has_dropout_after_the_embedding_and_in_every_block():
+    model = GPT(**CFG, dropout=0.5)
+    drops = [m for m in model.modules() if isinstance(m, nn.Dropout)]
+    assert len(drops) == 6 * CFG["n_layer"] + 1 and all(d.p == 0.5 for d in drops)
 
 
 def test_count_params():
@@ -182,8 +217,11 @@ def test_save_never_leaves_a_half_written_checkpoint(tmp_path, monkeypatch):
 
     # now the session dies in the middle of the next save
     def dies(obj, f, *args, **kwargs):
-        with open(f, "wb") as handle:
-            handle.write(b"half a checkpoint")
+        if hasattr(f, "write"):
+            f.write(b"half a checkpoint")
+        else:
+            with open(f, "wb") as handle:
+                handle.write(b"half a checkpoint")
         raise KeyboardInterrupt
 
     monkeypatch.setattr(torch, "save", dies)
@@ -201,6 +239,25 @@ def test_train_in_chunks_numbers_steps_straight_through(tmp_path):
     history = train_in_chunks(GPT(**CFG), get_batch, total_steps=40, chunk=20, lr=1e-3,
                               path=str(tmp_path / "ck.pt"), eval_every=10)
     assert [h["step"] for h in history] == [0, 10, 19, 20, 30, 39]
+
+
+def test_a_run_killed_mid_chunk_keeps_the_chunks_it_finished(tmp_path):
+    path = str(tmp_path / "ck.pt")
+    calls = 0
+
+    def dies_in_the_second_chunk(split):
+        nonlocal calls
+        calls += 1
+        if calls > 200:                        # one chunk of 20 steps, with its measurements, is 140 calls
+            raise KeyboardInterrupt
+        return get_batch(split)
+
+    with pytest.raises(KeyboardInterrupt):
+        train_in_chunks(GPT(**CFG), dies_in_the_second_chunk, total_steps=60, chunk=20, lr=1e-3,
+                        path=path, eval_every=10)
+    step, history = load(path, GPT(**CFG))
+    assert step == 20, "the first chunk was finished and must have been saved, as step 20"
+    assert [h["step"] for h in history] == [0, 10, 19]
 
 
 def test_train_in_chunks_resumes_where_it_stopped(tmp_path):

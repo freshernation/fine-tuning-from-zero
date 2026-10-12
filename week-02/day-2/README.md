@@ -90,6 +90,14 @@ t = torch.tensor([5., 6., 7.])
 t.masked_fill(torch.tensor([False, True, False]), 0.0)     # tensor([5., 0., 7.])
 ```
 
+Read that carefully: `True` marks the places to **overwrite**. Your mask will say
+`True` where looking is **allowed**, which is the opposite. `~` flips a boolean
+tensor:
+
+```python
+~torch.tensor([True, False, True])                         # tensor([False, True, False])
+```
+
 ### Why divide by √head_size
 
 Softmax exaggerates. Feed it big numbers and it gives nearly everything to the
@@ -135,7 +143,7 @@ Weights times values:
 
 ```
  position 0   1.00·10 + 0.00·20  =  10.0
- position 1   0.95·10 + 0.05·20  =  10.5
+ position 1   0.95·10 + 0.05·20  ≈  10.5
 ```
 
 Position 1's query matched position 0's key far better than its own, so it mostly
@@ -191,6 +199,14 @@ pytest week-02/day-2 -v
 
 One test gives `attend` queries and keys that are all zero and checks the answer
 against **yesterday's running mean**. Before you run it, say why that has to be true.
+
+---
+
+## After the exercises
+
+Karpathy's [Let's build GPT](https://www.youtube.com/watch?v=kCc8FmEb1nY): the part he
+calls the crux of the video, self-attention, up to where he starts on multiple heads.
+You have just written what he writes there.
 
 ---
 

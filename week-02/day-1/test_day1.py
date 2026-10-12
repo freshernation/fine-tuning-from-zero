@@ -49,5 +49,5 @@ def test_same_position_different_token_different_vector():
 def test_embedder_accepts_shorter_sequences_and_rejects_longer():
     emb = Embedder(10, 8, 16)
     assert emb(torch.zeros((1, 3), dtype=torch.long)).shape == (1, 3, 16)
-    with pytest.raises(ValueError, match="8"):
+    with pytest.raises(ValueError, match="(?s)(8.*9|9.*8)"):   # the message names both lengths
         emb(torch.zeros((1, 9), dtype=torch.long))

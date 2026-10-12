@@ -174,6 +174,10 @@ far.
 Notice what `load_state_dict` needs: a model of the same shape, already built. A
 checkpoint is the numbers, not the architecture.
 
+One trap for later. A checkpoint saved on a GPU remembers that its tensors lived on a
+GPU, and will not open on a laptop that has none. `torch.load(path, map_location="cpu")`
+opens it anywhere; `load_state_dict` then copies the numbers to wherever the model is.
+
 ### Never write on top of your only copy
 
 Saving takes time. A session can die halfway through a save. If you were writing

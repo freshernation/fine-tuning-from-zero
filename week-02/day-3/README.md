@@ -103,7 +103,7 @@ position separately, with the same weights, and nothing in it looks sideways:
  n_embd  ──▶  4 × n_embd  ──▶  GELU  ──▶  n_embd
 ```
 
-Out to four times the width, a non-linear function, back to the width. `GELU` is a
+Out to four times the width, a non-linear function, back to the width. `nn.GELU()` is a
 smooth cousin of "set negatives to zero"; without something non-linear in the middle,
 two linear layers collapse into one and the MLP could not compute anything a single
 layer cannot.
@@ -210,6 +210,14 @@ pytest week-02/day-3 -v
 
 `torch.cat(list_of_tensors, dim=-1)` lays tensors end to end along the last dimension.
 You met `cat` in week 1.
+
+---
+
+## After the exercises
+
+Karpathy's [Let's build GPT](https://www.youtube.com/watch?v=kCc8FmEb1nY): from
+multi-headed self-attention through the feed-forward layer, residual connections and
+layer norm.
 
 ---
 

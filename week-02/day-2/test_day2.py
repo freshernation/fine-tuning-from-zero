@@ -62,6 +62,22 @@ def test_head_never_looks_ahead():
     assert not torch.allclose(out_x[:, 5:], out_y[:, 5:])
 
 
+def test_head_dropout_drops_connections_not_outputs():
+    # Dropout on the attention WEIGHTS cuts whole connections between positions.
+    # Dropout on the output would instead blank single numbers inside a position's vector.
+    torch.manual_seed(0)
+    head = Head(16, 4, 8, dropout=0.5)
+    head.train()
+    x = torch.randn(64, 8, 16)
+    out_a, out_b = head(x), head(x)
+    assert not torch.equal(out_a, out_b), "dropout should make two training-mode calls differ"
+    zeros = (out_a == 0)
+    partly_blank = zeros.any(dim=-1) & ~zeros.all(dim=-1)
+    assert not partly_blank.any(), "single numbers were zeroed: that is dropout on the output"
+    head.eval()
+    assert torch.equal(head(x), head(x))
+
+
 def test_head_accepts_shorter_sequences():
     torch.manual_seed(0)
     head = Head(16, 4, 8)
