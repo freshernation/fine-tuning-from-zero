@@ -114,7 +114,7 @@ is worth ten of a stack trace from inside an HTTP library.
 your own `changed` from week 5.
 
 Between last week's score and today's, three things changed: the adapter was merged,
-the weights were quantized to about five bits, and the prompt is now built by the
+the weights were quantized, and the prompt is now built by the
 server. If the score moved, `changed` tells you which examples moved, and that tells
 you which of the three to suspect.
 
@@ -144,6 +144,8 @@ The tests use a small fake server that runs inside the test. Nothing needs a mod
 3. Save `data/notes/served_predictions.jsonl` and `data/notes/served.json`.
 4. `changed(examples, tuned_predictions, served_predictions)`. Read every example in
    `broken`.
+5. Stop the server, start it again on your `q4_k_m` file, and score that too. Keep
+   the better one as `served_predictions.jsonl`; put both numbers in your run log.
 
 Row in `logs/run-log.md`: the served accuracy, the number of template problems, how
 many examples broke and how many were fixed against last week.

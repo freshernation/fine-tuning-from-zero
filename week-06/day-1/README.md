@@ -85,15 +85,18 @@ a weight. On yours it is over six, because a model this small is a large part
 embedding table, and that is kept at higher precision. The saving from `q5_k_m` to
 `q4_k_m` is twenty megabytes. Remember that when you choose.
 
-Start with **`q4_k_m`**. It is the common choice for a reason.
+The usual advice is to start with `q4_k_m`. **For a model this small, start with
+`q8_0`.** The next paragraph is why.
 
 One warning that applies to you in particular: **small models are hurt more by
 quantization than large ones.** A 70-billion-parameter model barely notices four bits.
 A half-billion one has less redundancy to hide the damage in. The untuned base model,
 served with the course's reference prompt, scores 44% unquantized and 36% at `q4_k_m`:
-eight points, for six hundred megabytes. If tomorrow's score has dropped more than you
-like, the first thing to try is `q5_k_m` or `q8_0` — and you have just seen what they
-cost.
+eight points. A *tuned* model can fare worse, because what fine-tuning added is a
+small, precise correction, and that is exactly what coarse rounding destroys: the
+course's reference adapter scores 67% in PyTorch, 66% served at `q8_0`, and 45% at
+`q4_k_m` — below the untuned baseline — to save 133 megabytes. Make both files, score
+both tomorrow, and see what yours does.
 
 ### Nothing is shipped until it is re-scored
 

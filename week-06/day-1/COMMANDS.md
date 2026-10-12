@@ -74,16 +74,22 @@ three into one file.
 ## 3. Quantize
 
 ```bash
+llama-quantize runs/notes-f16.gguf runs/notes-q8_0.gguf Q8_0
+```
+
+Input file, output file, level. 531 MB. Make a second one to compare, always starting
+from the f16 file:
+
+```bash
 llama-quantize runs/notes-f16.gguf runs/notes-q4_k_m.gguf Q4_K_M
 ```
 
-Input file, output file, level. 398 MB. To make another level, run it again with
-`Q5_K_M` (420 MB) or `Q8_0` (531 MB), always starting from the f16 file.
+398 MB. Tomorrow you score both.
 
 ## 4. Serve
 
 ```bash
-llama-server -m runs/notes-q4_k_m.gguf --port 8080 --alias notes --jinja -c 4096
+llama-server -m runs/notes-q8_0.gguf --port 8080 --alias notes --jinja -c 4096
 ```
 
 - `-m` — the model file.
