@@ -38,6 +38,61 @@ Documentation moves. If a link is dead, search the site for the page title.
 
 ---
 
-## Weeks 2–6
+## Week 2 — A transformer you wrote
+
+| Day | Source | Read |
+|---|---|---|
+| 1 | [Transformers, the tech behind LLMs](https://www.youtube.com/watch?v=wjZofJX0v4M) — 3Blue1Brown | The section on word embeddings |
+| 2, 3 | [Attention in transformers, step-by-step](https://www.youtube.com/watch?v=eMlx5fFNoYc) — 3Blue1Brown | Up to multiple heads on Tuesday; the rest on Wednesday |
+| 2 | [Attention Is All You Need](https://arxiv.org/abs/1706.03762) — Vaswani et al. | Section 3.2.1 only. Half a page, one equation, and you implement it that day |
+| 4 | [Saving and Loading Models](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html) — PyTorch | "What is a `state_dict`?" and "Saving & Loading a General Checkpoint" |
+| every day, **after** the exercises | [Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY) — Andrej Karpathy | The part that matches what you just wrote |
+
+The Karpathy video is the complete solution to this week. That is why it is assigned
+after each day's exercises and never before. Watched afterwards, it is the best
+explanation there is of why your code looks the way it does.
+
+**Ignore for now:** "The Illustrated Transformer" and anything else that explains the
+2017 encoder-decoder model. It is a good piece about a different architecture; you are
+building the decoder-only kind, and the extra half will confuse you this week.
+
+---
+
+## Week 3 — Fine-tuning by hand
+
+| Day | Source | Read |
+|---|---|---|
+| 1 | [SmolLM2-135M-Instruct model card](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct) — Hugging Face | The summary and "How to use" |
+| 1 | [Chat templates](https://huggingface.co/docs/transformers/chat_templating) — Hugging Face | The introduction and first example |
+| 2 | [A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) — Andrej Karpathy | Again, as promised in week 1 |
+| 3, 4 | [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) — Hu et al. | Wednesday: the abstract, section 4.1 ("Low-Rank-Parametrized Update Matrices") and Figure 1. Thursday: section 4.2 ("Applying LoRA to Transformer"), first two paragraphs |
+
+The LoRA paper is the one paper in this course you read properly. It is short, it is
+clear, and by Wednesday evening you will have implemented its central equation.
+
+**Ignore for now:** every "LoRA explained" blog post and video, and the `peft`
+documentation. The first are longer than the paper and say less. The second is week 5,
+when it will read as a description of code you have already written.
+
+---
+
+## Week 4 — Data is the model
+
+| Day | Source | Read |
+|---|---|---|
+| 1 | [Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) — Anthropic | All of it, for the kinds of grader |
+| 4 | [A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) — Andrej Karpathy | The first section, "Become one with the data" |
+
+Two sources for a whole week, and one of them for the third time. That is not an
+oversight. This week's reading is your own data: `dev.jsonl`, then the model's wrong
+answers, then fifty of your own rows, then fifty more.
+
+**Ignore for now:** tools and papers about generating synthetic datasets at scale.
+They solve the problem of making a hundred thousand rows. Your problem this week is
+making eight hundred you have actually read.
+
+---
+
+## Weeks 5 and 6
 
 Listed here as each week arrives.

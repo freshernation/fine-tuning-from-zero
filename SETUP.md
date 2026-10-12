@@ -84,13 +84,35 @@ git config --global user.email "you@example.com"
 
 ---
 
+## Before week 2
+
+Nothing to install. Week 2 Day 4 walks you through mounting Google Drive in Colab, for
+checkpoints.
+
+## Before week 3
+
+`pip install -r requirements.txt` again: it now brings in `transformers` and `peft`.
+The week's pretrained model, `HuggingFaceTB/SmolLM2-135M-Instruct`, downloads itself
+inside Friday's notebook. No account is needed.
+
+## Before week 4
+
+`pip install -r requirements.txt` again, for the starter agent's two small
+dependencies.
+
+**The course's base model for weeks 4 to 6 is `Qwen/Qwen2.5-0.5B-Instruct`**, pinned at
+revision `7ae557604adf67be50417f59c2c2f167def9a775` (Apache-2.0, about 1 GB). It
+downloads itself in Colab; you never need it on your laptop until week 6.
+
+Optional: if you have an API key from Agent From Zero, copy `starter-agent/.env.example`
+to `starter-agent/.env` and fill it in. Week 4 can use a hosted model to help write
+examples. It is never required; every step has a free route.
+
 ## Not yet
 
 | Week | You will need | Do it now? |
 |---|---|---|
-| 2 | Google Drive mounted in Colab, for checkpoints | No — Week 2 Day 4 walks through it |
-| 3 | A free Hugging Face account, and the course's pinned model | No — Week 3 Day 1 |
 | 6 | A local model server | No |
 
-Resist setting these up early. Each one is ten minutes on the day you need it, and an
+Resist setting things up early. Each one is ten minutes on the day you need it, and an
 hour of confusion three weeks before.

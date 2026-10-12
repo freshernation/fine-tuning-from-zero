@@ -9,7 +9,7 @@ not need to have trained anything, ever. You do need about four hours a day.
 Everything in this repo is aimed at one outcome: **you can write LoRA on a whiteboard,
 and a model you tuned is running inside your own agent, beating the prompted baseline
 on an eval you froze before training.** (The agent is the notes agent from Agent From
-Zero. If you did not take that course, a starter copy arrives in week 4.) If something looks missing, it was cut on
+Zero. If you did not take that course, there is a copy in `starter-agent/`.) If something looks missing, it was cut on
 purpose — see `CUT_LIST.md`.
 
 ---
@@ -51,7 +51,7 @@ Week 3 is the keystone. Weeks 1 and 2 exist so that week 3 contains nothing
 unfamiliar, and week 3 exists so that week 5 does not either: the loop is week 1, the
 model is week 2, the adapter is week 3.
 
-> Week 1 is in this repo now. Weeks 2–6 arrive with the course.
+> Weeks 1 to 4 are in this repo now. Weeks 5 and 6 arrive with the course.
 
 ---
 
@@ -112,7 +112,8 @@ score on examples it has never seen, and no better.
 | `SETUP.md` | Day zero. Do this before anything else. |
 | `week-01/` … `week-06/` | One folder per week: four days, a milestone, a fence, a defence |
 | `tunelab/` | The pieces you write once and reuse: the loop, the tokenizer, the models |
-| `data/` | The text you train on in weeks 1 and 2 |
+| `data/` | The text you train on in weeks 1 to 3, and from week 4 your own dataset in `data/notes/` |
+| `starter-agent/` | The notes agent your model will run inside. Used from week 4 |
 | `ai/` | Your AI roles — planner, source finder, tutor, editor, outside view, defend |
 | `SOURCES.md` | Every reading in the course, and why it was chosen |
 | `CUT_LIST.md` | What this course deliberately does not teach |
