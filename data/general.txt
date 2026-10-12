@@ -1,0 +1,575 @@
+Today's real lesson is not PyTorch. It is this: almost every bug you hit in this course will be a shape bug. A model is a pile of numbers arranged in boxes, and training is arithmetic between boxes. If you can say the shape of every box out loud, you can debug anything in the next six weeks.
+
+Read a shape from the outside in. (2, 3) is two things, each of which is three numbers. (4, 8, 16) is four things, each of which is eight things, each of which is sixteen numbers.
+
+: means "all of this dimension". A plain number removes that dimension. That is why x[0] has shape (3,) and not (1, 3).
+
+dim=1 does not mean "sum the columns". It means "dimension 1 is the one that gets squashed". Before you run a line with dim= in it, cross that number out of the shape and say what is left.
+
+When two tensors have different shapes, PyTorch lines the shapes up from the right and stretches any dimension of size 1 to fit.
+
+No error. Wrong answer. Lined up from the right, (2,) matched the columns, so each column got a discount instead of each row. Broadcasting never complains when the sizes happen to fit. A shape bug that crashes is a gift; the ones that run are the ones that cost you an evening.
+
+Whole-number tensors point at things. Float tensors get trained. Mixing them up is the second most common bug after shapes.
+
+Open shapes.py. There are four functions, each a line or two. For each one, write the shape you expect as a comment before you run anything.
+
+rowmeans(x) — the mean of each row. normalizerows(x) — divide each row by its own sum. onehot(idx, n) — a row of zeros with a single 1.0, for each index. lastcolumn(x) — the last time step of every sequence in a batch.
+
+normalizerows is the one to slow down on. If your first attempt runs but the test says the rows do not sum to one, re-read the trap above before you ask anyone.
+
+Add today's row to logs/signal-log.md. Under "hardest thing", say which of the four you got wrong first, and what shape you thought it was.
+
+Training a model is one idea repeated a few million times: measure how wrong you are, find which way is less wrong, move a little that way. Today you do it once, on one number, with a pencil. Everything after today is the same thing with more numbers.
+
+Suppose x = 3, the right answer is y = 10, and the weight is currently w = 2. The prediction is 6. It is wrong by 4.
+
+We want one number that is big when the model is badly wrong and zero when it is right. Squaring the error does that:
+
+The data (x, y) is fixed. The only thing you are allowed to change is w. So the loss is really a function of w: try a different w, get a different loss.
+
+Nudge w up a hair, from 2 to 2.001. The loss goes from 16 to about 15.976. It went down by 0.024 for a nudge of 0.001 — a slope of about −24.
+
+That slope is the gradient. Its sign tells you the direction (negative: increasing w reduces the loss) and its size tells you how steep.
+
+You do not have to nudge. Calculus gives the slope exactly, and you already have what you need: the loss is something squared, and the something is wx - y. The chain rule says: the slope of the outside, times the slope of the inside.
+
+Derive it on paper now. Check it against the nudge: at w = 2, x = 3, y = 10 your formula must give −24. That formula is exercise 1.
+
+lr is the learning rate: how big "a little" is. Too small and you crawl. Too big and you jump clean over the valley and land higher up the other side.
+
+Deriving a slope by hand is fine for one weight. A model has millions. Autograd does it for you:
+
+requiresgrad=True marks a tensor as something you want slopes for. .backward() is called on the final number, and fills in .grad on everything that was marked. .item() turns a one-number tensor into a plain Python float.
+
+Gradients add up. .backward() does not replace what is in .grad; it adds to it. So on the second trip round a loop — a fresh loss, a fresh .backward() — .grad holds the sum of both trips. That is deliberate, and it is almost never what you want. After every update you zero it:
+
+The update itself must not be tracked. Changing a is not part of the model's arithmetic; it is you, reaching in from outside. Tell torch to look away:
+
+gradbyhand(w, x, y) — the formula you derived, in plain Python. autogradgrad(w, x, y) — the same slope, from .backward(). The test checks the two agree. When they do, you have checked torch's calculus against your own. Do that once and you can trust it for the rest of your life. step(w, grad, lr) — one line. fitline(xs, ys, lr, steps) — two weights now, w and b, and fifty data points. The loss is the mean squared error. No torch.optim today: you write the update.
+
+Call it with lr=1.5. Print the loss every step for the first ten steps. Put lr back, and delete the two lines that zero the gradients. Print w every fifty steps.
+
+You will meet both of these again, by accident, on a real model. Better to have seen them on a line first.
+
+Yesterday you took steps downhill by hand. Today you put that in a loop, let an optimizer do the update, and — the part people skip — measure honestly whether it is working.
+
+Today's code does not live in this folder. It goes in tunelab/loop.py, because you will use it again in Week 2 to train a transformer and in Week 3 to fine-tune one. Unchanged. That is the point of this week: the loop that trains a billion-parameter model is the loop you write today.
+
+model(x, y) calls forward. model.parameters() hands back every trainable tensor the model owns — yesterday's w and b, found for you. (Every one of them is being trained this week. In week 3 you will switch some of them off, and that will be the whole trick.)
+
+The convention for this whole course: a model takes (x, targets) and returns (output, loss). If you give it no targets, the loss is None. Every model you write until Week 4 follows it, so one loop can train all of them.
+
+AdamW is a smarter version of the step you wrote: it keeps a running memory of recent gradients and scales each parameter's step separately. You do not need its formula this week. You need to know it does the same job as your two lines.
+
+You have met a line of code for each of these, today or yesterday. Putting them in order, in a loop, is the exercise.
+
+Say them until you can do it without looking: forward, loss, backward, step, zero. On Friday you will be asked to.
+
+A model can get the training loss down by memorising the training data. That is useless: you wanted it to learn the pattern, not the examples.
+
+So you split the data in two before you start. The model trains on one part and never sees the other. The loss on the part it never saw — the validation loss — is the only number that tells you whether it learned anything that transfers.
+
+Measuring the loss is not training. A measurement must leave no trace, and three things make sure of it:
+
+You will look at thousands of these. There are three shapes worth knowing by sight.
+
+Learning: both go down together, validation a little above training. Overfitting: training keeps falling, validation turns round and climbs. The model has started memorising. Stop at the turn. Not learning: both flat. Something is broken — usually the learning rate, the data, or a missing zerograd().
+
+estimateloss(model, getbatch, split, batches=20) — the average loss over some batches, as a plain float, leaving no trace. train(model, getbatch, steps, lr, evalevery=100) — the five lines, in a loop, recording the train and validation loss as it goes.
+
+Add today's row to logs/signal-log.md. Then, on paper and without looking: the five lines in order, and one sentence on what would happen if you swapped lines 4 and 5. Bring the paper to tomorrow's live hour.
+
+Every language model you have ever called through an API does one thing: given some text, it scores every possible next piece. Today you build the smallest thing that does that. It is a lookup table. It is also, structurally, a language model — same inputs, same outputs, same loss, same loop as the ones in Week 5.
+
+Watch, then close the video and write it yourself. Typing along with a video is copying, and weeks 1–3 are for writing.
+
+A model does arithmetic. It cannot do arithmetic on "h". So every distinct character gets a whole number:
+
+"hello" becomes [3, 2, 4, 4, 5]. The count of distinct characters is the vocabulary size. That is a tokenizer. Real ones cut text into chunks bigger than a character, but they are the same idea: a table from pieces of text to numbers, and back.
+
+The task is "predict what comes next". So for every position, the right answer is simply the character after it:
+
+y is x, one position later. No labelling, no humans. The text is its own answer key. That one trick is why language models can be trained on the whole internet.
+
+Each row of a batch is a stretch like this cut from a random place. blocksize is how long the stretch is; batchsize is how many you cut. So x and y are both (B, T) whole numbers.
+
+For each position the model outputs one score per character in the vocabulary. Those scores are called logits. They are not probabilities: they can be negative, and they do not add up to one. Softmax turns them into probabilities:
+
+Shapes: (B, T) goes in, (B, T, C) comes out, where C is the vocabulary size. Monday's letters, all three at once.
+
+For each position, look at the probability the model gave to the character that actually came next. Cross-entropy is the negative log of that probability, averaged over every position.
+
+A model that knows nothing spreads its bets evenly: probability 1/C on everything. Its loss is -ln(1/C), which is ln(C). With 65 characters that is about 4.17.
+
+Remember that number. A fresh model should start near ln(vocabsize) — usually a little above it, never far. If yours starts at 9, it is not "bad", it is broken. That check costs nothing and you should make it every time you build a model.
+
+F.crossentropy wants logits as (N, C) and targets as (N,). Yours are (B, T, C) and (B, T). Reshaping one into the other is today's shape exercise.
+
+view never changes the numbers or their order, only where the brackets go. stack makes a batch out of separate rows. cat makes something longer.
+
+"Bigram" means pairs. The model predicts the next character from the current one and nothing else.
+
+That makes it a table with one row per character. Row h holds the scores for what follows h. Looking up a row by its number is exactly what nn.Embedding does:
+
+To generate: get the logits for the last position, softmax them, and draw one character according to those probabilities.
+
+CharTokenizer in tunelab/text.py — encode, decode, vocabsize. makegetbatch in tunelab/text.py — returns a getbatch(split) function of the kind yesterday's loop expects. Bigram in tunelab/bigram.py — forward and generate.
+
+Tomorrow you train this on a million characters of Shakespeare. Before you do, write your prediction in logs/signal-log.md, under "hardest thing":
+
+Here is what you have to reason from. The model sees one character and guesses the next. It can learn that q is followed by u. It cannot learn that th is followed by e, because by the time it sees the h it has forgotten the t.
+
+Whatever it produces tomorrow, nothing will be wrong with your loop, your loss or your data. The model cannot see far enough. Fixing that is the whole of next week.
+
+Last week's model stopped at a loss of about 2.5 and would not go lower. You worked out why: it guesses the next character from one character. Everything this week is about fixing that, and it takes three ideas. Today is the first two, plus the trick that makes the third possible.
+
+The bigram's table had one row per character, and the row was the answer: 65 scores for what comes next. That leaves the model nowhere to keep anything else. It cannot note "I am a vowel", or "I am the start of a word", because every number in the row is already spoken for.
+
+So split the job in two. First turn each character into a vector of numbers that describes it. Later, turn a description into scores.
+
+(B, T) whole numbers go in. (B, T, C) floats come out, where C is now called nembd: the width of the model. Nobody decides what the 32 numbers mean. Training does.
+
+Look at what that table gives the two 7s above: the same vector. The model cannot tell the first from the third. To it, "ab" and "ba" are the same bag of letters.
+
+The fix is almost embarrassingly simple. Make a second table, with one row per position instead of per character, and add the two together:
+
+Now the two hs differ, because their position rows differ. Both tables are learned.
+
+The position table has blocksize rows — the longest stretch of text the model will ever look at. That is a hard limit. Hand the model a longer sequence and there is no row for the extra positions. Yours should say so clearly rather than crash somewhere deep inside PyTorch.
+
+Shapes, because today is where you start needing them: the token lookup gives (B, T, C). The position lookup, done once for positions 0 … T-1, gives (T, C). Line those up from the right, the way you learned on the first Monday, and they add.
+
+Each position now knows what and where it is. It still knows nothing about its neighbours. The simplest way to tell it: replace each position with the average of itself and everything before it.
+
+Only before, never after: when the model is predicting character 5, character 6 is the answer, and it must not be allowed to see it.
+
+You could write that with two for loops. Do not. There is a way to do it for every position and every batch in one operation, and it is the trick the whole week is built on.
+
+Multiply a matrix of weights by a column of values, and each output is a weighted sum of the values, using one row of weights:
+
+Read the weights row by row. Row 0 says "position 0 listens only to itself". Row 2 says "position 2 listens equally to all three". The zeros in the top-right corner are what stop a position hearing the future.
+
+That is the same output as the picture above. So the question "how do I average the past?" has become "how do I build that matrix?" — and you have just read the documentation for the function that builds its shape.
+
+In PyTorch, @ is matrix multiplication, and it broadcasts: a (T, T) matrix times a (B, T, C) tensor applies the same weights to every batch.
+
+Now watch Karpathy's Let's build GPT, from where he starts averaging past context with a loop, up to — not including — the part he calls the crux of the video, self-attention. He solves bagofpast three ways. You have already solved it once, which is the only reason watching him do it is now worth your time.
+
+Add today's row to logs/signal-log.md. Then think about this, because it is tomorrow's whole lesson:
+
+In your weight matrix, row 2 is ⅓ ⅓ ⅓. Every earlier position gets an equal say. That is a strange way to read. In the sentence you are reading now, some earlier words matter far more than others.
+
+What if the weights were not equal — and what if each position could choose its own?
+
+Yesterday every position took a flat average of its past. Today each one decides for itself where to look. That decision is called attention, and it is the single idea that separates the model you finish this week from the one you built last week.
+
+It is also less than you have been led to expect. It is yesterday's weighted average, with the weights computed instead of fixed. Four lines.
+
+attend goes in attend.py, in this folder. causalmask and Head go in tunelab/attention.py.
+
+Keep the shape. Keep the zeros. Change only the numbers that are not zero, so that they still add up to one along each row but are no longer equal:
+
+Everything else — the multiplication, the shapes, the fact that nothing looks ahead — is exactly as it was. So the only new question is: where do those numbers come from?
+
+The score between position i and position j is the dot product of i's query with j's key: multiply them number by number and add up. If they point the same way the score is large; if they are unrelated it is near zero.
+
+Do that for every pair and you have a (T, T) table of scores. Row i is "how interested is position i in each other position". That is the weight matrix, almost.
+
+Each of the three is made by a plain linear layer, with no bias, from the position's vector. Nobody tells those layers what to look for. Training does.
+
+Scores can be any size and any sign. Weights have to be positive and add up to one. You know the function that does that: softmax, along each row.
+
+But first, the future has to be removed. Set every score for a future position to negative infinity. Softmax turns negative infinity into exactly zero:
+
+That is why the mask goes before the softmax and not after. Zero out the weights afterwards and each row would no longer add up to one.
+
+maskedfill does the setting. It wants a boolean tensor that is True in the places to overwrite:
+
+Read that carefully: True marks the places to overwrite. Your mask will say True where looking is allowed, which is the opposite. ~ flips a boolean tensor:
+
+Softmax exaggerates. Feed it big numbers and it gives nearly everything to the largest:
+
+A dot product adds up headsize terms, so the wider the vectors, the bigger the scores, and the more the softmax collapses onto a single position. A model that starts out listening to exactly one position has nothing to adjust. Dividing by √headsize keeps the scores the same size whatever the width.
+
+Two positions, vectors of width 1 so the arithmetic fits on a line. So √headsize is 1 and can be ignored this once.
+
+Position 1's query matched position 0's key far better than its own, so it mostly copied position 0's value. That is attention. Work one more row yourself, with numbers of your own, before you write any code.
+
+To get (B, T, T) scores out of two (B, T, H) tensors, one of them has to be turned on its side. .transpose(-2, -1) swaps the last two dimensions:
+
+The mask is the same every time, so build it once. But a plain attribute is invisible to PyTorch: it will not be saved, and on Thursday it will not move to the GPU with the rest of the model. registerbuffer fixes both:
+
+attend(q, k, v, mask) in attend.py — the arithmetic, on tensors you are handed. causalmask(T) in tunelab/attention.py. Head in tunelab/attention.py — the same arithmetic, but the head makes its own queries, keys and values from x.
+
+One test gives attend queries and keys that are all zero and checks the answer against yesterday's running mean. Before you run it, say why that has to be true.
+
+Karpathy's Let's build GPT: the part he calls the crux of the video, self-attention, up to where he starts on multiple heads. You have just written what he writes there.
+
+A head has one set of weights per position: one way of looking. But a character might want to know several things at once — what the last vowel was, whether a word just ended, who is speaking. Tomorrow: more than one head, and what to do with what they find.
+
+There is one diagram on this page that matters more than everything else this week. Every large language model you have ever used is that diagram, repeated. On Friday you will be asked to draw it on a blank page and say what each box is for.
+
+Today has four small new ideas. None is as hard as yesterday's. The work is in how they fit together.
+
+Two halves, and they are the same pattern twice: normalise, do something, add the result back to what you had.
+
+Copy it onto paper now. Then read on, and by the end each box should have a reason.
+
+One head has one set of queries and keys: one way of looking. A character may want to know several things at the same moment — where the word started, what the last vowel was, whether a line just broke.
+
+So run several heads side by side. Each has its own query, key and value layers, and each is free to learn to look for something different.
+
+To keep the model the same width throughout, the heads share it out. With nembd = 16 and four heads, each head produces 4 numbers per position. Lay the four outputs end to end and you are back at 16:
+
+That only works if nembd divides evenly by nhead. If it does not, say so the moment the model is built — not three calls later, as a shape error from somewhere inside a matrix multiply.
+
+Attention moves information between positions. It does not do much with it: the output is only ever a weighted average of values.
+
+The MLP is where each position works on what it gathered. It is applied to every position separately, with the same weights, and nothing in it looks sideways:
+
+Out to four times the width, a non-linear function, back to the width. nn.GELU() is a smooth cousin of "set negatives to zero"; without something non-linear in the middle, two linear layers collapse into one and the MLP could not compute anything a single layer cannot.
+
+And when you need a list of layers that PyTorch can see — so their weights show up in .parameters() — a plain Python list will not do. nn.ModuleList will:
+
+The (+) in the diagram: the output of each half is added to its input, not substituted for it.
+
+Why it matters. Stack twelve blocks without it and the gradient has to pass through every one on its way back to the first. Each can shrink it. By the time it arrives there is nothing left, and the early layers do not learn: last week's "not learning" curve, flat from the start.
+
+With the addition there is a straight road from the output to every layer. The gradient can always travel down it. Each block only has to learn a small correction to what is already there — and a block that has nothing useful to add can output zero and do no harm.
+
+One of today's tests sets every weight in your block to zero and checks that what comes out is exactly what went in. Work out why that must be true of the diagram before you run it.
+
+Add things to x twelve times over and its numbers can drift far from where they started — large in one block, tiny in another. Layers train badly when their inputs keep changing scale.
+
+LayerNorm takes each position's vector and rescales it to mean 0 and spread 1, then applies a learned scale and shift:
+
+It works on each position by itself. It never mixes positions and never mixes examples in a batch.
+
+Where it goes. Look at the diagram: the norm sits at the start of each half, inside the branch, and the straight road around it is left untouched. That is called pre-norm. The original paper put it after the addition; almost every model since has moved it, because it trains more steadily. The tests check that yours is pre-norm.
+
+There are two norms in a block and they are separate layers with separate weights.
+
+During training, nn.Dropout(0.2) sets a random 20% of the numbers passing through it to zero. It stops the model leaning too hard on any one number, which makes it harder to memorise the training set.
+
+Which is why, on the Wednesday of week 1, you were made to write model.eval() and model.train() around a measurement in a model where it made no difference. From today it makes a difference. Measure a model with dropout while it is still in training mode and the loss you read is the loss of a model with a fifth of its numbers missing.
+
+It goes in three places: on the attention weights (you did that yesterday), after the mixing layer in MultiHead, and at the end of the MLP.
+
+torch.cat(listoftensors, dim=-1) lays tensors end to end along the last dimension. You met cat in week 1.
+
+Karpathy's Let's build GPT: from multi-headed self-attention through the feed-forward layer, residual connections and layer norm.
+
+Then close this page and draw the block. Check it against the diagram. Do it again until you get it right twice running. Tomorrow you stack several of them and it trains.
+
+The first is short: you have every part, and today you stack them. The second is the thing nobody teaches until it has cost them a night. A free Colab session will die in the middle of a run. Today you make that cost five minutes.
+
+GPT and countparams go in tunelab/gpt.py. save, load and traininchunks go in tunelab/checkpoint.py.
+
+Then the loss, exactly as in the bigram: reshape, crossentropy. And the same convention as ever: model(idx, targets) returns (logits, loss).
+
+Compare the top and bottom of that picture with last week's model. The bigram went from (B, T) straight to (B, T, vocabsize) in one lookup. This model does the same journey, with a stretch in the middle where positions can talk to each other. That stretch is the whole difference.
+
+Last week your bigram's first loss was around 4.6, a little above ln(65) = 4.17, because a table of random numbers is confidently wrong about some characters.
+
+A deep model with careless starting weights is much worse than that, and a model that starts badly spends its first thousand steps just unlearning the noise. So set the starting weights small: drawn from a normal distribution with standard deviation 0.02, and every bias at zero. Small weights mean small logits, small logits mean nearly equal probabilities, and the first loss lands almost exactly on ln(vocabsize).
+
+nn.init.normal(tensor, mean=0.0, std=1.0) and nn.init.zeros(tensor) overwrite a tensor in place.
+
+The check you learned in week 1 now has teeth. If your GPT's first loss is not within a whisker of ln(vocabsize), something is wrong before you have trained a step.
+
+The model has a longest sequence. Ask it to continue a text longer than blocksize and there is no position row for the extra characters. So each time round, hand it only the last blocksize characters of what you have so far. It writes with a sliding window.
+
+Dropout must be off. You want the model's real prediction, not the prediction of a model with some of its numbers knocked out. But do not leave it switched to eval mode: if generate is called in the middle of training, the model has to go back the way it came. model.training is True or False, and model.train(flag) sets it.
+
+p.numel() is how many numbers are in a tensor. Add that up over model.parameters() and you have the size of the model.
+
+When yours works, count the Colab-sized model from tomorrow's milestone, then count its pieces separately. Most people guess the embedding tables are the bulk of it. Find out. You will be asked on Friday.
+
+A model on the GPU can only work on tensors that are on the GPU. Batches cut from a tensor on the GPU are already there, which is why moving data is enough.
+
+The one bug the tests cannot catch for you. Any tensor you create inside forward is born on the CPU unless you say otherwise. On your laptop that is invisible. On Colab it is
+
+There are exactly two places in your model where this can happen, and you wrote both this week:
+
+the positions in Embedder — make them where the input lives: torch.arange(T, device=idx.device) the mask in Head — which is why it had to be a registered buffer. Buffers move with model.to(device). A mask built fresh inside forward does not.
+
+A model's learned numbers live in its statedict: a dictionary from names to tensors.
+
+torch.save will write any dictionary. So a checkpoint is the weights plus whatever you need to carry on: for you, how many steps are done, and the history so far.
+
+Notice what loadstatedict needs: a model of the same shape, already built. A checkpoint is the numbers, not the architecture.
+
+One trap for later. A checkpoint saved on a GPU remembers that its tensors lived on a GPU, and will not open on a laptop that has none. torch.load(path, maplocation="cpu") opens it anywhere; loadstatedict then copies the numbers to wherever the model is.
+
+Saving takes time. A session can die halfway through a save. If you were writing straight onto your one checkpoint file, you now have half a file and no checkpoint.
+
+os.replace either happens entirely or not at all. A crash before it costs you the new save. It can never cost you the old one.
+
+Your loop trains for a number of steps and returns. To checkpoint without touching it: call it for 500 steps, save, call it for 500 more, save. If the session dies, the next run loads the last save and carries on from there.
+
+train() numbers its steps from 0 every time. Your history must not restart. If the run is already finished, running it again should do nothing.
+
+One honest cost: train() builds a new AdamW on every call, so the optimizer's memory of recent gradients restarts at each chunk. At this scale you will not see it. Real training code saves the optimizer too, and in week 5 you will see a library do it.
+
+Colab's disk is wiped when the session ends. Google Drive is not. Tomorrow's notebook mounts your Drive, and your checkpoint path points into it:
+
+GPT and countparams in tunelab/gpt.py. save and load in tunelab/checkpoint.py. traininchunks in tunelab/checkpoint.py.
+
+One test trains your GPT on a single batch until it has memorised it. You know that test: you wrote it yourself last Friday. If it fails while the shape tests pass, the bug is in how the parts connect, and the block diagram is where to look.
+
+Then do tomorrow's setup tonight: open week-02/colab.ipynb in Colab, pick the T4, and run it as far as the GPU check. A GPU is not always free the moment you want one.
+
+For two weeks you have trained models from nothing: random numbers in, Shakespeare-ish out. Nobody does that for real work. They start from a model somebody else already trained, for weeks, on a great deal of text.
+
+That is all "pretrained" means. Somebody ran your loop for a long time. The file they ended up with is a statedict, like the one you saved on Thursday, only larger.
+
+renderchatml goes in chat.py, in this folder. AsCourseModel and layertable go in tunelab/pretrained.py.
+
+HuggingFaceTB/SmolLM2-135M-Instruct. About 135 million parameters: seventy times your big GPT, and roughly a thousandth of the models you call through an API. Small enough to train on a free GPU, real enough that it writes English and follows instructions.
+
+You do not need to download it today. Every test this week runs on your laptop against a miniature with the same architecture and random weights — same parts, same names, a few thousand parameters. Friday's notebook loads the real one.
+
+No position table. Position is mixed into the queries and keys by rotating them ("rotary" embeddings) rather than added at the start. Same job; no blocksize-row table to run out of. A different norm. RMSNorm rescales without shifting. A cheaper cousin of LayerNorm. All the heads live in one matrix. qproj is a single Linear that produces every head's query at once; the code slices it into heads afterwards. You built heads as separate objects because it is clearer. This is the same arithmetic, packed. A three-layer MLP with a gate. Still "out wide, non-linear, back".
+
+Your first exercise builds the table that answers this. For the real model, the headline numbers:
+
+(lmhead is not in the table because it shares its weights with the token table: the same 28 million numbers are used to read tokens in and to score them on the way out.)
+
+Your tokenizer had 65 entries, one per character. This one has 49,152, and an entry is usually a piece of a word:
+
+It is the same idea as your table — text to whole numbers and back — built by a procedure that merges the commonest neighbouring pieces until the table is full. You use it as given. What matters this week: a pretrained model only understands its own tokenizer. The numbers it learned are attached to those 49,152 rows and no others.
+
+The model never sees a list. It sees one string of text and predicts what comes next, exactly like your GPT. Something has to flatten the list into a string, with markers for who is speaking:
+
+That format is called ChatML. The markers are not magic: they are single tokens in the vocabulary, and the model was trained on text laid out exactly this way. Lay a chat out any other way — a missing newline, a different marker — and you are showing it text it has never seen the like of. It will still answer. It will answer worse, and nothing will tell you why.
+
+That is the most common silent bug in fine-tuning, and it is the reason you are writing the flattening by hand once: so that in week 5, when a library does it for you, you know there is a string underneath and you know how to look at it.
+
+The last line of the example above — the assistant marker with nothing after it — is the generation prompt: it tells the model whose turn it is. You include it when you want a reply and leave it off when the text already contains one.
+
+Your loop expects model(x, targets) to return (output, loss). A Hugging Face model is called differently and returns an object:
+
+So you write a small wrapper: an nn.Module that holds the Hugging Face model, calls it that way, and hands back the pair your loop wants. When a module is stored as an attribute of another module (self.something = hfmodel), PyTorch can see inside it: its parameters show up in .parameters(), and .to(device) and .train() reach it.
+
+The trap. Hugging Face models will compute a loss for you if you pass labels=. Do not. When given labels they assume you passed the same tokens as the input and shift them by one position internally. Your batches are already shifted — y is x, one position later — because you wrote makegetbatch that way in week 1. Shift twice and the model is trained to predict the token after next. It runs. The loss goes down. The model is quietly wrong.
+
+So take the logits and compute the loss yourself, the way your GPT does. One of today's tests checks for exactly this.
+
+layertable(model) in tunelab/pretrained.py. model.namedparameters() yields (name, tensor) pairs. AsCourseModel in tunelab/pretrained.py. renderchatml in chat.py.
+
+One test trains the wrapped model with tunelab/loop.py, the file you wrote on the third day of the course and have not edited since. When it passes, stop and notice what just happened.
+
+Then, on paper: tomorrow you fine-tune this model the obvious way — every one of its 135 million parameters trainable. AdamW keeps two extra numbers for every parameter it trains, and backward needs a gradient for each. How many numbers is that in memory, before the model has looked at a single token?
+
+Fine-tuning is not a new technique. It is training, started from someone else's weights instead of random ones. Same loop, same loss, same five lines. You could have done it on the first Friday of the course if you had had a model worth starting from.
+
+So today's code is short. The lesson is in the two numbers you measure around it.
+
+finetuneandmeasure goes in full.py, in this folder. counttrainable and trainingmemorybytes go in tunelab/finetune.py.
+
+The starting point. Not random numbers: weights that already know a great deal. Your job is to nudge them, not to build them.
+
+A smaller learning rate. In week 2 you trained from scratch at 1e-3. Fine-tuning a pretrained model is usually done ten to a hundred times more gently. Think about what a step does: it moves every weight a little in the direction that helps this batch. Random weights have nothing to lose. Pretrained weights are carrying everything the model knows, and a large step toward your handful of examples is a large step away from all of that.
+
+You are training on your data only. The loss you are minimising says nothing about everything else the model could do. The weights that held that knowledge are the same weights you are now overwriting, and nothing in the loop protects them.
+
+This is called catastrophic forgetting, and you do not have to take it on trust, because it is easy to measure:
+
+Keep some text of the old kind — something the model was already good at. Measure the loss on it before you fine-tune. Fine-tune on the new thing. Measure the old loss again.
+
+Today's tests do this in miniature. Your own GPT is pretrained, inside the test, on a toy language where each token is followed by the next one up: 3 4 5 6. Then you fine-tune it on a language where each is followed by the one two up: 3 5 7 9. You will watch it become perfect at the second and helpless at the first, in a hundred steps.
+
+Four copies of the model, each number a 4-byte float, before the model has looked at a single token. Then the activations — every intermediate result, kept so that backward can use it — which grow with batch size and sequence length.
+
+No free GPU, and not many paid ones. And at the end you would have a complete 7-billion-parameter copy of the model to store, for every task you fine-tuned it on.
+
+Look at the table again, though. Three of the four rows are per weight you train. A weight you do not train still has to be stored, but it needs no gradient and nothing from AdamW. If you could get away with training very few of them, three quarters of the bill would nearly vanish.
+
+A parameter is trained if its requiresgrad is True, and every parameter in an nn.Module starts that way. You can switch it off:
+
+A frozen parameter gets no gradient, and the optimizer leaves it alone. Today you only need this to count; tomorrow you use it.
+
+counttrainable(model) in tunelab/finetune.py. trainingmemorybytes(model) in tunelab/finetune.py — the table above, as arithmetic. finetuneandmeasure(...) in full.py. The loop is train(), from week 1, as it is.
+
+These take a little longer than usual: several of them pretrain a small GPT first.
+
+When they pass, try the forgetting experiment at a gentler learning rate. In testday2.py the fine-tuning runs at lr=1e-2. Copy the setup into a Python shell and run it at 1e-3 and at 1e-4, for the same hundred steps. Write three rows in logs/run-log.md: the learning rate, the new-task loss afterwards, the old-task loss afterwards.
+
+You will find you can forget less — by learning less. That trade does not go away by choosing the right number. It is why tomorrow's idea exists.
+
+This is the day the course was built around. Everything before it was so that today would contain nothing unfamiliar, and everything after it uses what you write today.
+
+It is about thirty lines. There is one idea in it, and the idea is arithmetic you already know. Take the day slowly anyway. On Friday you will be asked to derive it on a blank page, and in three weeks a model you tuned with it will be running inside your agent.
+
+The counting functions go in lowrank.py, in this folder. freeze, unfreeze and LoRALinear go in tunelab/lora.py.
+
+Read it before the rest of this page, not after. It is three paragraphs and one equation, and it is more readable than its reputation. Then come back and build it.
+
+Full fine-tuning has a bill — four copies of the model in memory, three of them per weight you train — and it forgets.
+
+namedparameters() gives every tensor with its full dotted name, so you can choose by name: only the last block, say.
+
+But look at what you gave up. You can now only change what the last block does. Every earlier block is exactly as it was. If what your task needs is a slightly different way of attending in block 3, you cannot have it.
+
+So the question becomes sharper: can you change every layer, a little, while training almost no numbers?
+
+Take one linear layer in the model. Its weight matrix is W, shaped (dout, din), and it computes W x.
+
+Now do something that sounds like it changes nothing. Freeze W, and train ΔW as a separate thing. The layer computes:
+
+W is never touched, so nothing it knew can be overwritten. So far this saves nothing: ΔW is the same size as W.
+
+Here is the observation the paper rests on. When you fine-tune a big model on a narrow task, the change ΔW turns out to be simple. Not small in size — simple in structure. It can be written, nearly, as the product of two thin matrices:
+
+That is LoRA. Low-Rank Adaptation: adapt the model by learning a low-rank change to its weights.
+
+A squeezes the input from din numbers down to r. B expands those r back out to dout. So whatever the change is, it has to pass through a bottleneck r numbers wide. A full ΔW could do anything to x; yours can only do things that survive that squeeze.
+
+The bet is that fine-tuning for one task does not need more. It is a bet, and on Friday you will measure it: you will train at ranks 1, 4 and 16 and see what each buys.
+
+Your first exercise builds B @ A in full and asks PyTorch for its rank. It will never be more than r, however large the matrix. That is the meaning of the word.
+
+Two roads. The left is the layer exactly as it came, frozen. The right is yours. They are added.
+
+You have seen this shape before. It is a residual connection, turned on its side: an untouched road, plus a learned correction.
+
+A 2-in, 2-out layer, rank 1. Take alpha = 1, so the scale is 1 and can be ignored for now.
+
+Right road, in two steps. A x squeezes two numbers into one: 2·4 + 1·5 = 13. Then B expands that one number back into two: [1·13, 3·13] = [13, 39].
+
+Now do it the other way, to convince yourself they are the same thing. Multiply B @ A out first:
+
+Look at that B @ A. Its second row is three times its first. However you choose the three numbers in A and B, the rows will always be multiples of each other. That is rank 1, and that is the bottleneck made visible.
+
+Work one more yourself, with your own numbers, both ways, before you write any code.
+
+B starts as all zeros. Then B @ A is zero, the right-hand road contributes nothing, and on step 0 the layer behaves exactly as the pretrained layer did. You begin from the model as it was — not from the model plus some random disturbance.
+
+A starts random. Small random numbers, the same way PyTorch initialises an ordinary Linear: nn.init.kaiminguniform(A, a=math.sqrt(5)).
+
+Why not both at zero? One of today's tests checks which of A and B receives a gradient on the very first backward pass. Run it, look at what it asserts, and work out the answer to this question from that. You will be asked on Friday.
+
+alpha is a number you choose alongside the rank. It sets how loudly the adapter speaks relative to the frozen layer. Dividing by r means that if you double the rank you do not also have to retune everything else: the overall size of the update stays roughly where it was.
+
+In practice people set alpha to once or twice the rank and leave it. It is a knob you need to know exists, and to put in the right place.
+
+nn.Parameter. A tensor only becomes part of a module — visible to .parameters(), moved by .to(device), saved in the statedict — if it is wrapped:
+
+Make A and B where the base layer lives. By the time you wrap a layer, the model may already be on the GPU. torch.zeros(…, device=w.device, dtype=w.dtype) builds a tensor that matches another one.
+
+Dropout goes on x as it enters the right-hand road only. The frozen road must be left exactly as it was.
+
+x @ M.T applies a matrix M shaped (out, in) to a batch of row vectors x shaped (…, in). That is what nn.Linear does inside.
+
+fullupdateparams, loraparams and updatematrix in lowrank.py. freeze and unfreeze in tunelab/lora.py. LoRALinear in tunelab/lora.py.
+
+The attribute names base, A, B and scaling are fixed. Friday's tests compare your layer, number for number, with the library everybody uses. Conventions matter there: which of the two matrices is the zero one, which way round they multiply, where the scale goes. Today's tests check the same conventions, so that Friday is not a surprise.
+
+Then, on paper, from a blank page: the diagram, with every shape. Then the one-line formula for the output. Then the count of trainable numbers for a layer with din = 576, dout = 192, r = 8.
+
+You have a layer. Tomorrow you put it inside a real model, in every place it belongs, and train through it.
+
+Yesterday you built one layer. Today is plumbing: getting that layer into every place it belongs inside a real model, training through it, and then deciding what to do with the result. None of it is hard. All of it is where real bugs live.
+
+A transformer block has a handful of linear layers. Which of them get an adapter?
+
+The paper tried the combinations and found that adapting the attention query and value projections gave most of the benefit for the fewest parameters. That is a finding about the models they tested, not a law, and people now often adapt more. It is the usual starting point, and it is yours: qproj and vproj.
+
+Notice what that choice means in the terms you learned in week 2. You are adjusting what each position looks for and what it says when listened to, in every block, and leaving the rest alone.
+
+To replace one, you cannot assign to the name. You need its parent — the module that holds it — and the short name it has there. namedchildren() gives a module's direct children only:
+
+setattr with a string is what lets you do that for a name you only know at run time.
+
+Match the whole name. You are looking for layers called qproj. If you check whether the target appears in the name, then a target of "q" matches qproj, and also anything else with a q in it. Match the last part of the dotted name, exactly.
+
+Do not change a collection while you walk it. If you replace modules while looping over namedmodules(), you are editing the tree under the loop. Collect what you want to replace first; replace afterwards.
+
+Putting adapters in does not, by itself, stop the rest of the model training. If you forget to freeze it, you are doing full fine-tuning with some extra parameters attached: every weight moves, the memory bill is back, and nothing looks wrong. The loss goes down nicely.
+
+So injectlora freezes the whole model before it wraps anything, and one of today's tests trains through your adapters and then compares every base weight, bit for bit, with a copy taken beforehand.
+
+After training, everything the model learned is in the As and Bs. Nothing else changed — you have just proved that. So that is all you need to save.
+
+You can keep many adapters for one base model — one per task — and each costs megabytes. An adapter is useless without the exact base model it was trained on. It is a change; a change to something else is noise. An adapter only fits a model with adapters in the same places, at the same rank. Load a rank-8 adapter into rank-4 slots and the shapes do not match. That must be an error, loudly. The dangerous version is a loader that quietly skips what does not fit and leaves you evaluating an untrained adapter.
+
+So once training is done, you can do the multiplication once, add the result to W, and put an ordinary nn.Linear back where the adapter was. The model is then exactly the shape it was when you downloaded it, with no trace of LoRA in it, and it gives the tuned answers.
+
+In week 6 you will merge, because the tool that turns your model into a single file for serving wants a plain model.
+
+LoRALinear.merged() — a new method on yesterday's class. injectlora(model, targets, rank, alpha, dropout=0.0). lorastatedict(model) and loadlora(model, state). mergelora(model).
+
+Do them in that order; the tests are grouped the same way. isinstance(m, nn.Linear) tells you whether a module is a linear layer; note that your LoRALinear is not one, though it holds one.
+
+Then open week-03/colab.ipynb in Colab, pick the T4, and run it as far as the GPU check, as you did last Thursday. Tomorrow you run three fine-tunes of a real model and compare them, and you want the GPU to be there.
+
+By Friday you will have a model that predicts the next character of Shakespeare. It will be a bad model — a lookup table with a one-character memory. That is not the point. The point is the loop around it: forward, loss, backward, step, zero. Hold on to that shape. In week 3 you will use the same loop, unchanged, to fine-tune a real pretrained model, and in week 5 a library will run it for you and you will know exactly what it is doing.
+
+Weeks 1–3 are AI-off for writing code. The model tutors you (ai/tutor.md) and never authors for you.
+
+Days 3 and 4 put their code in tunelab/, not in the day folder, because you will import it again next week.
+
+Read the day's README. All of it, before writing anything. Predict, then run. Before you run any line, say out loud what shape you think comes back. Being wrong here is worth more than being right. Write the exercises. In order — they build. Test with pytest week-01/day-N -v. Green means correct behaviour, nothing more. Log anything that stuck you in logs/stuck-log.md, and your numbers in logs/signal-log.md. Commit and push. Every day.
+
+A bigram model trained on data/tiny.txt to a validation loss under 2.59, and a second run that deliberately overfits a single batch to zero. Spec in milestone/README.md. It must pass its tests and survive Friday's defence, which is a different and harder bar.
+
+It is not on any test. It is how the idea of a validation set stops being about PyTorch.
+
+A good model. Speed. GPUs. Anything in the "not yet" column of FENCE.md — attention and transformers above all, however tempting the rest of Thursday's video is. You will train something small and bad this week and that is correct. A bad model you understand completely beats a good one you downloaded, and it is not close.
+
+Last Friday your model stopped at a loss of about 2.5 and you could say exactly why: it could see one character. This week you give it eyes. By Friday the same loop, on the same text, with a model you built, gets well under that — and writes something that looks like a play.
+
+Nothing about training changes this week. tunelab/loop.py is not edited. What changes is the thing inside the loop. That is worth noticing: the loop that trained a lookup table trains a transformer, and in week 3 it will fine-tune a real one.
+
+Weeks 1–3 are AI-off for writing code. The model tutors you (ai/tutor.md) and never authors for you. This is the week that rule is hardest to keep, because the whole solution is one search away. A transformer you copied is worth nothing to you in week 3.
+
+The model goes in tunelab/attention.py and tunelab/gpt.py; checkpoints in tunelab/checkpoint.py. You will import all three next week.
+
+Read the day's README. All of it, before writing anything. Predict, then run. Before you run any line, say what shape comes back. Write the exercises. In order — they build. Test with pytest week-02/day-N -v. Log anything that stuck you in logs/stuck-log.md, and your numbers in logs/signal-log.md. Commit and push. Every day.
+
+The Karpathy video is assigned after each day's exercises, not before. Watching him write the thing you are about to write is the fastest way to finish the week having learned nothing.
+
+Two runs. A small GPT trained on your laptop to a validation loss under 2.26, graded by tests. And a bigger one — just under two million parameters — trained on a Colab GPU, with checkpoints on your Drive, killed once on purpose and resumed. Spec in milestone/README.md.
+
+A model that writes well. Speed tricks. Pretrained anything. Everything in the "not yet" column of FENCE.md. Your GPT will produce Shakespeare-shaped nonsense, and that is exactly as good as two million parameters and a million characters can do. The point is that you can open any transformer after this week and recognise every part.
+
+No new ideas today. You have written every piece already. The milestone is putting them together and being able to explain the number that comes out.
+
+Tokenize the text, build the batches, make a Bigram, train it with your loop, generate 200 characters. Return the history, the final validation loss and the sample.
+
+The test trains on data/tiny.txt — about a million characters of Shakespeare, 65 distinct ones — and asks for a validation loss under 2.59.
+
+The test hands you a batch where a is always followed by b, b by c, c by a, and asks for a loss under 0.01.
+
+Then open week-01/colab.ipynb in Colab and run it top to bottom. Nothing this week needs a GPU; you are doing it now so that it is not new in Week 2.
+
+One row in logs/run-log.md: the date, the steps, the final train and validation loss, and in the note column the first forty characters your model generated.
+
+From Week 4 on, a run that is not in that log did not happen. Start the habit on a run that takes five seconds.
+
+Why does the loss start between 4 and 5? You know where 4.17 comes from. Yours starts a little above it. What about a table of random numbers makes it worse than knowing nothing?
+
+Why does it stop around 2.5 and go no lower, however long you train? Try it: steps=20000. Nothing is broken. What would the model need that it does not have?
+
+Why can the loss reach zero on the a → b → c batch, but not on a real one? Call overfitonebatch on a real batch from data/tiny.txt and see where it stops. Then say exactly what that floor is measuring.
+
+And the reason the function exists at all: when a training run misbehaves, this is the first thing you try. A model that cannot memorise one batch has a bug in the model, the loss or the loop — not a tuning problem — and you have just saved yourself an hour of changing the learning rate.
+
+No new ideas today. You wrote every part this week. Today you train it properly, on hardware that will not wait for you, and you prove that losing the session costs you almost nothing.
+
+One function. Tokenize, move to the device, build the model, train through traininchunks, generate. Its docstring is the spec.
+
+The tests train the SMALL model — about 64,000 parameters — for 400 steps on your laptop, and ask for a validation loss under 2.26. Last week's model could not get under about 2.5 however long you trained it. Yours now can, in ten seconds.
+
+Open week-02/colab.ipynb in Colab with a T4 and run it top to bottom. It trains the BIG model — about 1.8 million parameters — for 3000 steps.
+
+Target: a validation loss under BIGTARGET. Kill it once, on purpose, after the notebook has printed its line for step 1000, and run the training cell again. It must carry on, not start over. If it starts over, your checkpointing has a bug that your tests did not find; fix it before you go on.
+
+A row in logs/run-log.md: parameters, steps, final train and validation loss, and in the note column the step you killed it at. week-02/milestone/sample.txt: the 300 characters your big model generated.
+
+Where are most of the parameters? Count the big model's pieces separately: the two embedding tables, one block, the final layer. Then, inside one block: attention against the MLP. Which is biggest, and could you have predicted it from the diagram?
+
+What would the sample look like with blocksize=8? Do not guess. Change BIG (keep the rest), train the small number of steps you can afford, and compare the text. Use a different checkpoint path: a checkpoint from one shape of model will not load into another. Then say what the model can no longer do.
+
+Your run was killed at step 1000-and-something. What exactly was lost? Be precise: which steps had to be done again, and what else restarted that is not in your checkpoint at all?
