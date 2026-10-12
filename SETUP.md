@@ -108,11 +108,20 @@ Optional: if you have an API key from Agent From Zero, copy `starter-agent/.env.
 to `starter-agent/.env` and fill it in. Week 4 can use a hosted model to help write
 examples. It is never required; every step has a free route.
 
-## Not yet
+## Before week 5
 
-| Week | You will need | Do it now? |
-|---|---|---|
-| 6 | A local model server | No |
+Nothing to install on your laptop. The week's notebook installs `bitsandbytes` on
+Colab, where the GPU is.
 
-Resist setting things up early. Each one is ten minutes on the day you need it, and an
-hour of confusion three weeks before.
+## Before week 6
+
+This is the one week where the model runs on **your** machine.
+
+- **llama.cpp.** `brew install llama.cpp` on macOS, `winget install llama.cpp` on
+  Windows, or a prebuilt release from its GitHub page on Linux. On an Intel Mac,
+  Homebrew builds it from source: start it the evening before.
+- A clone of the llama.cpp repository as well, for one conversion script.
+  `week-06/day-1/COMMANDS.md` has the details.
+- Your week-5 adapter, downloaded from Drive.
+
+If llama.cpp will not install, Monday's notebook does the conversion on Colab instead.

@@ -51,8 +51,6 @@ Week 3 is the keystone. Weeks 1 and 2 exist so that week 3 contains nothing
 unfamiliar, and week 3 exists so that week 5 does not either: the loop is week 1, the
 model is week 2, the adapter is week 3.
 
-> Weeks 1 to 4 are in this repo now. Weeks 5 and 6 arrive with the course.
-
 ---
 
 ## Two acts
@@ -111,7 +109,7 @@ score on examples it has never seen, and no better.
 |---|---|
 | `SETUP.md` | Day zero. Do this before anything else. |
 | `week-01/` … `week-06/` | One folder per week: four days, a milestone, a fence, a defence |
-| `tunelab/` | The pieces you write once and reuse: the loop, the tokenizer, the models |
+| `tunelab/` | The pieces you write once and reuse. See below |
 | `data/` | The text you train on in weeks 1 to 3, and from week 4 your own dataset in `data/notes/` |
 | `starter-agent/` | The notes agent your model will run inside. Used from week 4 |
 | `ai/` | Your AI roles — planner, source finder, tutor, editor, outside view, defend |
@@ -120,6 +118,26 @@ score on examples it has never seen, and no better.
 | `logs/stuck-log.md` | Every time you get stuck. Non-negotiable. |
 | `logs/signal-log.md` | Your daily numbers. Two minutes at end of day. |
 | `logs/run-log.md` | Every training run and what it scored. |
+
+### What you will have written in `tunelab/`
+
+| File | Week | |
+|---|---|---|
+| `loop.py` | 1 | the training loop: used unchanged through week 3 |
+| `text.py`, `bigram.py` | 1 | a tokenizer, batches, and the smallest language model |
+| `attention.py`, `gpt.py` | 2 | attention, the block, a GPT |
+| `checkpoint.py` | 2 | save, load, resume |
+| `pretrained.py`, `finetune.py` | 3 | a pretrained model in your loop; what training costs |
+| **`lora.py`** | 3 | **LoRA, by hand** |
+| `toolcall.py` | 4 | parsing and scoring tool calls |
+| `dataset.py` | 4 | building, cleaning, splitting, freezing, rendering |
+| `sft.py` | 5 | label masking and batching for supervised fine-tuning |
+| `analysis.py` | 5 | failure types, what moved, the bootstrap |
+| `served.py` | 6 | talking to your model as a server |
+
+Three files there are given rather than written: `notes.py` (the agent's tool
+descriptions), `generate.py` (getting text out of a real model) and `tiny.py` (a toy
+tokenizer and model for testing pipelines in seconds).
 
 Each week has a `FENCE.md` listing what you have learned and what you have not. Paste
 both lists into any AI role before you use it — it is what stops the model reaching

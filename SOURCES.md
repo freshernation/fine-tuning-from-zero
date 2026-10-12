@@ -93,6 +93,44 @@ making eight hundred you have actually read.
 
 ---
 
-## Weeks 5 and 6
+## Week 5 — The real run
 
-Listed here as each week arrives.
+| Day | Source | Read |
+|---|---|---|
+| 1 | [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314) — Dettmers et al. | The abstract and the first paragraph of the introduction |
+| 1 | [LoRA conceptual guide](https://huggingface.co/docs/peft/conceptual_guides/lora) — `peft` | All of it, as a review of week 3 |
+| 2 | [`Trainer`](https://huggingface.co/docs/transformers/main_classes/trainer) — `transformers` | The opening paragraphs, before the class reference |
+| 3 | [A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) — Andrej Karpathy | The checks under "Set up the end-to-end training/evaluation skeleton" |
+
+The two scripts you read this week, `week-05/train.py` and `week-05/predict.py`, are
+sources too. Read them the way you read the LoRA paper.
+
+**Ignore for now:** fine-tuning "recipes" that list twenty hyperparameters to tune. If
+your run is not working, Thursday's lesson tells you where to look, and it is not
+there.
+
+---
+
+## Week 6 — Ship and defend
+
+| Day | Source | Read |
+|---|---|---|
+| 1 | [llama.cpp](https://github.com/ggml-org/llama.cpp) — README | The description, and the section on preparing and quantizing models |
+
+One source. By now you can read a tool's own documentation and know what every option
+is doing on your behalf, which was the point.
+
+---
+
+## Read next
+
+The course's cut list (`CUT_LIST.md`) is the reading list for afterwards. In the order
+that will make most sense:
+
+1. A hosted fine-tuning API's documentation, any provider. Read every parameter and
+   name the thing in this course it corresponds to.
+2. The QLoRA paper, in full this time.
+3. The DPO paper (Direct Preference Optimization), for when "the right answer" is a
+   matter of better and worse.
+4. Anything on distillation: using a large model's outputs to train a small one. You
+   did a little of it in week 4.
