@@ -58,8 +58,8 @@ whole file. Change a character anywhere and the string changes.
 
 ```python
 import hashlib
-hashlib.sha256("delete it".encode("utf-8")).hexdigest()[:16]     # '1e52c9b0d5d7a5a0' or similar
-hashlib.sha256("delete it.".encode("utf-8")).hexdigest()[:16]    # completely different
+hashlib.sha256("delete it".encode("utf-8")).hexdigest()[:16]     # 'cb00afa235d8f25d'
+hashlib.sha256("delete it.".encode("utf-8")).hexdigest()[:16]    # 'bd6edfe3c01615e8'   one full stop later
 ```
 
 You record the fingerprint today and commit it. From now on every script that trains
