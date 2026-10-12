@@ -35,3 +35,22 @@ class Head(nn.Module):
     def forward(self, x):
         """x: (B, T, n_embd)  ->  (B, T, head_size).  T may be shorter than block_size."""
         raise NotImplementedError
+
+
+class MultiHead(nn.Module):
+    """Several heads side by side, each looking for something different.
+
+    n_head Heads, each of size n_embd // n_head, so that laid end to end their
+    outputs are n_embd wide again. Then one nn.Linear(n_embd, n_embd) to mix what
+    they found, then dropout.
+
+    If n_embd does not divide evenly by n_head, raise ValueError here, in __init__.
+    """
+
+    def __init__(self, n_embd, n_head, block_size, dropout=0.0):
+        super().__init__()
+        raise NotImplementedError
+
+    def forward(self, x):
+        """x: (B, T, n_embd)  ->  (B, T, n_embd)"""
+        raise NotImplementedError

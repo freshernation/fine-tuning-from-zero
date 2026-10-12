@@ -32,3 +32,23 @@ class Embedder(nn.Module):
         names both numbers.
         """
         raise NotImplementedError
+
+
+class Block(nn.Module):
+    """One transformer block: gather, then think. Shape in = shape out.
+
+        x = x + attention(norm(x))
+        x = x + mlp(norm(x))
+
+    Two separate nn.LayerNorm(n_embd), one before each branch.
+    attention   MultiHead from tunelab/attention.py
+    mlp         Linear(n_embd, 4 * n_embd), GELU, Linear(4 * n_embd, n_embd), dropout
+    """
+
+    def __init__(self, n_embd, n_head, block_size, dropout=0.0):
+        super().__init__()
+        raise NotImplementedError
+
+    def forward(self, x):
+        """x: (B, T, n_embd)  ->  (B, T, n_embd)"""
+        raise NotImplementedError
