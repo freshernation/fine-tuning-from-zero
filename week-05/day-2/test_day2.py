@@ -159,6 +159,26 @@ def test_a_finished_run_is_not_overwritten_by_accident(tmp_path):
     assert run_train(tmp_path, "--force").returncode == 0
 
 
+def test_force_never_deletes_a_folder_that_is_not_a_run(tmp_path):
+    make_data(tmp_path)
+    precious = tmp_path / "run"
+    precious.mkdir()
+    (precious / "thesis.txt").write_text("three years of work")
+    for extra in ((), ("--force",)):
+        done = run_train(tmp_path, *extra)
+        assert done.returncode != 0, "it trained into, or over, a folder that was not its own"
+    assert (precious / "thesis.txt").read_text() == "three years of work"
+
+
+def test_an_unfinished_run_is_not_continued_under_different_settings(tmp_path):
+    make_data(tmp_path)
+    assert run_train(tmp_path).returncode == 0
+    (tmp_path / "run" / "run.json").unlink()                     # as if it had been killed before finishing
+    changed = run_train(tmp_path, "--lr", "5e-5")
+    assert changed.returncode != 0 and "different settings" in changed.stderr
+    assert run_train(tmp_path).returncode == 0, "the same settings may carry on"
+
+
 def test_training_refuses_to_start_on_an_edited_eval_set(tmp_path):
     make_data(tmp_path)
     with open(tmp_path / "eval.jsonl", "a") as f:

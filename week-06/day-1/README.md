@@ -33,12 +33,12 @@ swap tasks cheaply; merge and you get a plain model that every other tool unders
 This week you need the second. The converter in the next step knows nothing about
 adapters.
 
-With `peft` it is two calls:
+With `peft` it is two steps, and you have written both by hand:
 
-```python
-PeftModel.from_pretrained(base_model, adapter_dir)      # attach: your inject_lora + load_lora
-        .merge_and_unload()                             # fold in: your merge_lora
-```
+| Step | In `peft` | What you called it |
+|---|---|---|
+| attach the saved adapter to a base model | `PeftModel.from_pretrained` | `inject_lora`, then `load_lora` |
+| fold it in and hand back a plain model | `merge_and_unload` | `merge_lora` |
 
 **Merge into a full-precision base.** Last week you trained on a 4-bit base because it
 was cheap. Do not merge into that. Load the base model again in ordinary precision and
@@ -73,17 +73,19 @@ The levels have names. The ones worth knowing:
 | Name | Nominal bits per weight | This model's file | Its real bits per weight |
 |---|---|---|---|
 | `f16` | 16 | 994 MB: no quantization, half precision | 16 |
-| `q8_0` | 8 | 531 MB | 8.6 |
-| `q5_k_m` | about 5.5 | 420 MB | 6.8 |
+| `q8_0` | about 8.5 | 531 MB | 8.6 |
+| `q5_k_m` | about 5.7 | 420 MB | 6.8 |
 | `q4_k_m` | about 4.8 | 398 MB: the usual default | 6.4 |
 
 The "k" levels are cleverer than last week's even spacing: they give more bits to the
 tensors that suffer most from losing them. That is why the numbers are not whole.
 
-Look at the last column. On a large model `q4_k_m` really does come to under five bits
-a weight. On yours it is over six, because a model this small is a large part
-embedding table, and that is kept at higher precision. The saving from `q5_k_m` to
-`q4_k_m` is twenty megabytes. Remember that when you choose.
+Look at the last column. On most models `q4_k_m` really does come to under five bits a
+weight. On yours it is over six, and the tool tells you why if you read what it
+prints: this model's layers are 896 wide, the 4-bit "k" format needs a width that
+divides by 256, and so about half the tensors **fall back** to a 5-bit format. Very
+little of your "4-bit" file is 4-bit. The saving from `q5_k_m` to `q4_k_m` is twenty
+megabytes. Remember that when you choose, and read your tools' output.
 
 The usual advice is to start with `q4_k_m`. **For a model this small, start with
 `q8_0`.** The next paragraph is why.
@@ -133,7 +135,8 @@ template intact.
    `gguf_bytes` predicted.
 
 If llama.cpp will not install on your machine, `week-06/colab.ipynb` does steps 3 and
-4 on Colab and gives you the file.
+4 on Colab and gives you a `q8_0` file. You still need the `llama-server` program to
+serve it: a prebuilt release from llama.cpp's GitHub page is one download.
 
 ---
 

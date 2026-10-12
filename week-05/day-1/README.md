@@ -131,11 +131,11 @@ delegating the paperwork, and you know what the paperwork is for.
 
 ### Loading in four bits
 
-You will see this in Thursday's notebook. It is one configuration object:
+You will meet this tomorrow, in `week-05/train.py`. It is one configuration object:
 
 | `BitsAndBytesConfig(...)` | Meaning |
 |---|---|
-| `load_in_4bit=True` | quantize every linear layer as it is loaded |
+| `load_in_4bit=True` | quantize the model's linear layers as they are loaded |
 | `bnb_4bit_quant_type="nf4"` | put the sixteen levels where normally-distributed weights are, not evenly |
 | `bnb_4bit_compute_dtype=torch.float16` | turn codes back into 16-bit floats when computing |
 | `bnb_4bit_use_double_quant=True` | quantize the per-block scales too; a little more saved |
@@ -154,8 +154,8 @@ it. Everything you write today runs on your laptop.
 pytest week-05/day-1 -v
 ```
 
-Then, in a shell, with your `quant.py`: take one real weight matrix (any `q_proj` from
-the tiny model in `conftest.py` will do), and print `quantization_error` at 8, 4, 3 and
+Then, in a shell, with your `quant.py`: take one weight matrix (any `q_proj` from
+`tunelab.tiny.tiny_model(259)` will do), and print `quantization_error` at 8, 4, 3 and
 2 bits, next to the tensor's own standard deviation. One row in `logs/run-log.md`: at
 how many bits is the error a tenth of the spread? At how many is it half?
 

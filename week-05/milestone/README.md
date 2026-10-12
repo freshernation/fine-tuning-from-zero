@@ -71,7 +71,7 @@ What experiment would tell the two apart?
 
 ## Done means
 
-- [ ] `pytest week-05 -v` — 66 passed
+- [ ] `pytest week-05 -v` — 68 passed
 - [ ] The three deliverables, committed
 - [ ] Your adapter saved on Drive, with its `run.json` and `history.json`
 - [ ] Pushed

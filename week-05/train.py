@@ -86,7 +86,9 @@ def load_model(args):
             args.model, revision=args.revision, quantization_config=quantization, device_map={"": 0})
         model = prepare_model_for_kbit_training(model)
     else:
-        model = AutoModelForCausalLM.from_pretrained(args.model, revision=args.revision)
+        # float32, said out loud: some library versions would otherwise load the
+        # half-precision numbers the file happens to be stored in
+        model = AutoModelForCausalLM.from_pretrained(args.model, revision=args.revision, torch_dtype=torch.float32)
     return model, tokenizer
 
 
@@ -132,9 +134,25 @@ def main():
     # 2. A finished run is evidence. Do not write over it by accident.
     if (out / "run.json").exists() and not args.force:
         sys.exit(f"{out} already holds a finished run. Choose another --out, or pass --force to start it again.")
-    if args.force and out.exists():
-        import shutil
-        shutil.rmtree(out)
+    for needed in (args.train, args.prompt):
+        if not Path(needed).is_file():
+            sys.exit(f"Not starting: {needed} does not exist.")
+    settings_now = {key: value for key, value in vars(args).items() if key not in ("force", "out")}
+    started_with = out / "started_with.json"
+    if out.exists() and any(out.iterdir()):
+        is_a_run = started_with.exists() or (out / "run.json").exists()
+        if args.force:
+            if not is_a_run:
+                sys.exit(f"Not deleting {out}: it is not empty and it is not a run folder made by this script.")
+            import shutil
+            shutil.rmtree(out)
+        elif not is_a_run:
+            sys.exit(f"{out} is not empty and is not a run folder. Choose a new, empty --out.")
+        elif json.loads(started_with.read_text()) != settings_now:
+            sys.exit(f"{out} holds an unfinished run that was started with different settings. "
+                     "A changed run is a new run: choose another --out, or pass --force to throw the old one away.")
+    out.mkdir(parents=True, exist_ok=True)
+    started_with.write_text(json.dumps(settings_now, indent=1))
 
     # 3. Model, tokenizer, data. The same prompt file the baseline used.
     system = Path(args.prompt).read_text().strip()
@@ -143,7 +161,16 @@ def main():
     train = Examples(args.train, tokenizer, system, max_len)
     held_out = Examples(args.eval, tokenizer, system, max_len)
     if len(train) == 0:
-        sys.exit("Every training example was longer than --max-len. Raise it.")
+        sys.exit("Every training example was too long to keep. Raise --max-len, or shorten the system prompt.")
+    if args.smoke:                                       # a smoke run checks plumbing: a handful of rows is plenty
+        train.rows, held_out.rows = train.rows[:8], held_out.rows[:8]
+
+    # A Mac's own GPU ("MPS") is used by default and is not reliable for this: the
+    # course's reference run went to NaN on one. Train on the CPU there instead.
+    on_mac_gpu = torch.backends.mps.is_available() and not torch.cuda.is_available()
+    use_cpu = args.smoke or args.cpu or on_mac_gpu
+    if on_mac_gpu and not args.smoke:
+        print("Apple GPU found: training on the CPU instead, which is slower and reliable. Colab is much faster.")
 
     # 4. Adapters, through peft, configured by your own function.
     from peft import get_peft_model
@@ -166,8 +193,8 @@ def main():
         eval_strategy="steps", eval_steps=every,
         save_strategy="steps", save_steps=every, save_total_limit=2,
         logging_steps=1 if args.smoke else 5,
-        fp16=torch.cuda.is_available() and not args.smoke,
-        use_cpu=args.smoke or args.cpu,
+        fp16=torch.cuda.is_available() and not use_cpu,
+        use_cpu=use_cpu,
         report_to="none",
         seed=0,
     )
@@ -177,7 +204,8 @@ def main():
     )
 
     # 6. If Colab killed an earlier attempt, carry on from its last checkpoint.
-    checkpoints = sorted((out / "checkpoints").glob("checkpoint-*"), key=lambda p: int(p.name.split("-")[1]))
+    checkpoints = sorted((p for p in (out / "checkpoints").glob("checkpoint-*") if (p / "trainer_state.json").exists()),
+                         key=lambda p: int(p.name.split("-")[1]))    # a checkpoint cut off mid-save has no state file
     started = time.time()
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -188,6 +216,7 @@ def main():
     (out / "history.json").write_text(json.dumps(history_from(trainer.state.log_history), indent=1))
     record = {
         **{key: value for key, value in vars(args).items() if key != "force"},
+        "trained_on": "cpu" if use_cpu else "gpu",
         "eval_fingerprint": eval_hash.read_text().strip(),
         "train_examples": len(train), "eval_examples": len(held_out),
         "dropped": {"train": train.dropped, "eval": held_out.dropped},

@@ -37,8 +37,10 @@ def to_prediction(message):
         Its arguments arrive as a JSON string; if that string is not a JSON object,
         the prediction is invalid (tool None, arguments {}, text "", valid False).
       - otherwise the content is text. But run it through parse_prediction first:
-        if the "text" turns out to contain a tool call, the server did not apply the
-        chat template properly. Return that call, and add "template_problem": True.
+        if the "text" turns out to contain a tool call - one that can be read, OR
+        one that cannot (parse_prediction says not valid) - the server did not apply
+        the chat template properly. Return what parse_prediction gave, and add
+        "template_problem": True.
       - otherwise: tool None, the stripped content as text, valid True.
 
     "template_problem" is only present when there is one.

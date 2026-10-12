@@ -30,6 +30,7 @@ Your code goes in `tunelab/sft.py`.
 | inside it: forward, loss, backward, step, zero | the five lines — week 1 |
 | `eval_strategy="steps"`, `eval_steps=20` | `eval_every`, and `estimate_loss` — week 1 |
 | `save_steps`, `resume_from_checkpoint` | `train_in_chunks`, `save`, `load` — week 2 |
+| refusing to resume under changed settings, or to write over a finished run | new: a changed run is a new run |
 | `get_peft_model(model, config)` | `inject_lora` — week 3 |
 | `model.save_pretrained("adapter")` | `lora_state_dict` — week 3 |
 | `check_frozen(...)`, first thing | yours — week 4 |
@@ -163,7 +164,8 @@ Top to bottom, with `tunelab/loop.py` beside it. Answer these in
 python3 week-05/train.py --smoke --out runs/smoke
 ```
 
-on your laptop, against your real data. Then open `week-05/colab.ipynb` and run it as
+on your laptop, against your real data. (On a Mac, the script trains on the CPU even
+without `--smoke`: Apple's GPU is not reliable for this. Real runs belong on Colab.) Then open `week-05/colab.ipynb` and run it as
 far as **"the first run"**. Before the training cell, it asks you to write a row in
 `logs/run-log.md`. Write it first.
 

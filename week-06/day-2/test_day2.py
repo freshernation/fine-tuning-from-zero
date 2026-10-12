@@ -88,6 +88,13 @@ def test_a_tool_call_that_leaked_into_the_text_is_flagged():
     assert "template_problem" not in to_prediction({"role": "assistant", "content": "Hello"})
 
 
+def test_a_leaked_call_that_cannot_even_be_read_is_flagged_and_invalid():
+    leaked = {"role": "assistant", "content": "<tool_call>\n{'name': 'add_note'"}
+    prediction = to_prediction(leaked)
+    assert prediction["valid"] is False and prediction["tool"] is None
+    assert prediction["template_problem"] is True
+
+
 # ---- talking to a server -----------------------------------------------------------
 
 def test_wait_until_ready_waits(fake_server):

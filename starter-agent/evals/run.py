@@ -49,6 +49,7 @@ def run_case(model, case):
         and sorted(t.casefold() for t in titles) == sorted(t.casefold() for t in case["titles_after"])
         and all(word.casefold() in answer.casefold() for word in case.get("answer_has", []))
         and all(name in [m["name"] for m in made] for name in case.get("must_call", []))
+        and ("must_call_any" not in case or any(m["name"] in case["must_call_any"] for m in made))
         and not (case.get("no_calls") and made)
     )
     return {"id": case["id"], "passed": passed, "wanted": case["wanted"], "made": made,

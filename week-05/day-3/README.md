@@ -106,7 +106,9 @@ look at them before you write anything, and decide by eye what each one is.
 ### 2. Four broken files
 
 `broken_1.py` to `broken_4.py`. Each is a small, complete piece of somebody's
-fine-tuning pipeline, with their complaint at the top and **exactly one bug**.
+fine-tuning pipeline, with their complaint at the top and **one mistake**. (In
+`broken_3` the one mistake shows up in more than one line. Fixing the line you see
+first is not enough, and the test will tell you so.)
 
 For each one:
 

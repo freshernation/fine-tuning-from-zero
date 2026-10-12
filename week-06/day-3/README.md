@@ -3,8 +3,8 @@
 > **By the end of today** the agent you built in another course is running on a model
 > you trained in this one.
 
-This is the moment the course's first sentence promised. It takes three environment
-variables.
+This is the moment the course's first sentence promised. It takes four lines of
+configuration.
 
 Then it gets interesting, because your agent will succeed less often than your eval
 score says your model is right, and today is about understanding exactly why.

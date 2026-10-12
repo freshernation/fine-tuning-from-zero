@@ -53,7 +53,7 @@ starts with a blank page and ends with a question from a colleague.
 
 ## Done means
 
-- [ ] `pytest week-06 -v` — 34 passed
+- [ ] `pytest week-06 -v` — 35 passed
 - [ ] `pytest` at the top of the repo: everything in six weeks, green
 - [ ] The three deliverables, committed
 - [ ] Your agent, running on your model, on your machine

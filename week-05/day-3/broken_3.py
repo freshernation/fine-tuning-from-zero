@@ -2,8 +2,8 @@
 
 "99% on my eval set after one epoch!!"
 
-Nobody's first run scores 99%. Find the bug, fix it, and write in NOTES.md how you
-found it.
+Nobody's first run scores 99%. Find what is wrong, fix it, and write in NOTES.md how
+you found it. There is more to it than the line that catches your eye first.
 """
 
 import random

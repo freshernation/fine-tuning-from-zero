@@ -50,7 +50,8 @@ spec = importlib.util.spec_from_file_location("merge", "week-06/day-1/merge.py")
 merge = importlib.util.module_from_spec(spec); spec.loader.exec_module(merge)
 
 MODEL, REVISION = "Qwen/Qwen2.5-0.5B-Instruct", "7ae557604adf67be50417f59c2c2f167def9a775"
-base = AutoModelForCausalLM.from_pretrained(MODEL, revision=REVISION)      # full precision, NOT 4-bit
+import torch
+base = AutoModelForCausalLM.from_pretrained(MODEL, revision=REVISION, torch_dtype=torch.float32)   # full precision, NOT 4-bit
 tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=REVISION)
 
 merged = merge.merge_adapter(base, "runs/run-01/adapter")
