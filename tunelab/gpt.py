@@ -52,3 +52,43 @@ class Block(nn.Module):
     def forward(self, x):
         """x: (B, T, n_embd)  ->  (B, T, n_embd)"""
         raise NotImplementedError
+
+
+class GPT(nn.Module):
+    """The whole model. Follows the course convention: model(idx, targets) -> (logits, loss).
+
+        Embedder                       (B, T)          -> (B, T, n_embd)
+        dropout
+        n_layer Blocks, one after another
+        a final LayerNorm
+        Linear(n_embd, vocab_size)     (B, T, n_embd)  -> (B, T, vocab_size)
+
+    Starting weights: every nn.Linear and nn.Embedding weight is drawn from a normal
+    distribution with std 0.02, and every Linear bias is zero. self.apply(fn) calls
+    fn on every layer inside the model; today's README shows it.
+    """
+
+    def __init__(self, vocab_size, block_size, n_embd, n_head, n_layer, dropout=0.0):
+        super().__init__()
+        raise NotImplementedError
+
+    def forward(self, idx, targets=None):
+        """idx: (B, T) ids.  Returns (logits (B, T, vocab_size), loss or None)."""
+        raise NotImplementedError
+
+    @torch.no_grad()
+    def generate(self, idx, max_new_tokens):
+        """Extend idx (B, T) by sampling.  Returns (B, T + max_new_tokens).
+
+        Two things the bigram's generate did not have to care about:
+          - the model can see at most block_size tokens, so feed it only the last
+            block_size of what you have so far
+          - dropout must be off while sampling, and the model must be handed back
+            in whatever mode (train or eval) it arrived in
+        """
+        raise NotImplementedError
+
+
+def count_params(model):
+    """How many numbers does this model learn?"""
+    raise NotImplementedError
