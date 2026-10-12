@@ -53,6 +53,7 @@ def arguments():
     p.add_argument("--max-len", type=int, default=1536, help="examples longer than this many tokens are dropped")
     p.add_argument("--eval-every", type=int, default=20, help="optimizer steps between evaluations and checkpoints")
     p.add_argument("--four-bit", action="store_true", help="load the base model in 4 bits (needs a GPU and bitsandbytes)")
+    p.add_argument("--cpu", action="store_true", help="do not use a GPU even if there is one (slow; for a laptop whose GPU runs out of memory)")
     p.add_argument("--smoke", action="store_true", help="3 steps on a toy model: checks the plumbing, learns nothing")
     p.add_argument("--force", action="store_true", help="start again in a folder that already holds a finished run")
     return p.parse_args()
@@ -166,7 +167,7 @@ def main():
         save_strategy="steps", save_steps=every, save_total_limit=2,
         logging_steps=1 if args.smoke else 5,
         fp16=torch.cuda.is_available() and not args.smoke,
-        use_cpu=args.smoke,
+        use_cpu=args.smoke or args.cpu,
         report_to="none",
         seed=0,
     )
