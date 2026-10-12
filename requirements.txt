@@ -10,3 +10,10 @@ torch>=2.2
 # stuck on an older torch that needs numpy 1.x.
 numpy<2; sys_platform == "darwin" and platform_machine == "x86_64"
 numpy; sys_platform != "darwin" or platform_machine != "x86_64"
+
+# Week 3 - loading a pretrained model, and checking your LoRA against the library's.
+# Intel Macs are stuck on an older torch, which needs older releases of both.
+transformers>=4.46,<4.50; sys_platform == "darwin" and platform_machine == "x86_64"
+peft>=0.13,<0.15; sys_platform == "darwin" and platform_machine == "x86_64"
+transformers>=4.46; sys_platform != "darwin" or platform_machine != "x86_64"
+peft>=0.13; sys_platform != "darwin" or platform_machine != "x86_64"

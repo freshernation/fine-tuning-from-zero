@@ -6,6 +6,7 @@ Two jobs:
      or not you ran `pip install -e .`.
   2. Give tests `load("shapes.py")`: import a student file that sits next to the
      test file, so two days can both have a file with the same name.
+  3. From week 3, hand tests a tiny pretrained-style model without downloading one.
 """
 
 import importlib.util
@@ -33,3 +34,17 @@ def load(request):
         return module
 
     return _load
+
+
+@pytest.fixture
+def tiny_llama():
+    """A real Hugging Face model with the same architecture as the course's pretrained
+    one, but tiny and with random weights. Built from a config: nothing is downloaded."""
+    import torch
+    from transformers import AutoModelForCausalLM, LlamaConfig
+
+    torch.manual_seed(0)
+    return AutoModelForCausalLM.from_config(LlamaConfig(
+        vocab_size=100, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
+        num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=64,
+    ))
