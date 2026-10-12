@@ -2,6 +2,7 @@
 
 Run these from the top of your repo. Each one is explained below it.
 
+> These commands were run with llama.cpp build 11562 (October 2026).
 > llama.cpp renames its tools from time to time. If a command here does not exist in
 > the version you installed, run it with `--help`, or check the llama.cpp README: the
 > steps do not change, only their names.
@@ -23,8 +24,11 @@ git clone --depth 1 https://github.com/ggml-org/llama.cpp
 ```
 
 ```bash
-pip install -r llama.cpp/requirements.txt
+pip install gguf sentencepiece protobuf
 ```
+
+(The repository's own `requirements.txt` pins a newer PyTorch than you may have and
+is not needed for this model: those three packages are enough.)
 
 Check:
 
@@ -62,7 +66,7 @@ python llama.cpp/convert_hf_to_gguf.py runs/merged --outfile runs/notes-f16.gguf
 ```
 
 - `runs/merged` — the folder from step 1.
-- `--outtype f16` — no quantization yet: 16-bit floats. About 1 GB.
+- `--outtype f16` — no quantization yet: 16-bit floats. 994 MB.
 
 The script reads the weights, the vocabulary and the chat template, and writes all
 three into one file.
@@ -73,8 +77,8 @@ three into one file.
 llama-quantize runs/notes-f16.gguf runs/notes-q4_k_m.gguf Q4_K_M
 ```
 
-Input file, output file, level. About 300 to 400 MB. To make another level, run it
-again with `Q5_K_M` or `Q8_0`, always starting from the f16 file.
+Input file, output file, level. 398 MB. To make another level, run it again with
+`Q5_K_M` (420 MB) or `Q8_0` (531 MB), always starting from the f16 file.
 
 ## 4. Serve
 
@@ -86,8 +90,8 @@ llama-server -m runs/notes-q4_k_m.gguf --port 8080 --alias notes --jinja -c 4096
 - `--port 8080` — the address is then `http://127.0.0.1:8080/v1`.
 - `--alias notes` — the name clients use for the model. The agent's `.env` says `notes`.
 - `--jinja` — **use the chat template stored in the file**, including its handling of
-  tools. Without this, tool calls can come back as plain text. If your version says
-  the flag is unknown, it is on by default.
+  tools. Without this, tool calls can come back as plain text. In recent versions it
+  is on by default; passing it does no harm.
 - `-c 4096` — context length, in tokens. Your prompts are about nine hundred.
 
 Leave it running in its own terminal. Check from another:

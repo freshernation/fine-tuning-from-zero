@@ -74,5 +74,5 @@ def test_gguf_size_arithmetic(load):
     assert merge.QUANT_BITS["q8_0"] > merge.QUANT_BITS["q5_k_m"] > merge.QUANT_BITS["q4_k_m"] > 4
     n = 494_032_768
     assert merge.gguf_bytes(n, 16) == 988_065_536
-    assert merge.gguf_bytes(n, merge.QUANT_BITS["q4_k_m"]) < 0.35 * merge.gguf_bytes(n, 16)
+    assert merge.gguf_bytes(n, merge.QUANT_BITS["q4_k_m"]) < 0.45 * merge.gguf_bytes(n, 16)
     assert isinstance(merge.gguf_bytes(n, 4.85), int)

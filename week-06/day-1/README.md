@@ -70,23 +70,30 @@ You quantized six numbers by hand last Monday. Now a tool does it to half a bill
 
 The levels have names. The ones worth knowing:
 
-| Name | Bits per weight, about | For this model |
-|---|---|---|
-| `f16` | 16 | about 1 GB: no quantization, half precision |
-| `q8_0` | 8.5 | about 520 MB: almost indistinguishable from the original |
-| `q5_k_m` | 5.7 | about 350 MB |
-| `q4_k_m` | 4.85 | about 300 MB: the usual default |
+| Name | Nominal bits per weight | This model's file | Its real bits per weight |
+|---|---|---|---|
+| `f16` | 16 | 994 MB: no quantization, half precision | 16 |
+| `q8_0` | 8 | 531 MB | 8.6 |
+| `q5_k_m` | about 5.5 | 420 MB | 6.8 |
+| `q4_k_m` | about 4.8 | 398 MB: the usual default | 6.4 |
 
 The "k" levels are cleverer than last week's even spacing: they give more bits to the
 tensors that suffer most from losing them. That is why the numbers are not whole.
+
+Look at the last column. On a large model `q4_k_m` really does come to under five bits
+a weight. On yours it is over six, because a model this small is a large part
+embedding table, and that is kept at higher precision. The saving from `q5_k_m` to
+`q4_k_m` is twenty megabytes. Remember that when you choose.
 
 Start with **`q4_k_m`**. It is the common choice for a reason.
 
 One warning that applies to you in particular: **small models are hurt more by
 quantization than large ones.** A 70-billion-parameter model barely notices four bits.
-A half-billion one has less redundancy to hide the damage in. If tomorrow's score has
-dropped more than you like, the first thing to try is `q5_k_m` or `q8_0` — and at this
-size you can afford them.
+A half-billion one has less redundancy to hide the damage in. The untuned base model,
+served with the course's reference prompt, scores 44% unquantized and 36% at `q4_k_m`:
+eight points, for six hundred megabytes. If tomorrow's score has dropped more than you
+like, the first thing to try is `q5_k_m` or `q8_0` — and you have just seen what they
+cost.
 
 ### Nothing is shipped until it is re-scored
 
