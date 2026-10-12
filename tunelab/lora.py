@@ -30,7 +30,8 @@ class LoRALinear(nn.Module):
               nn.init.kaiming_uniform_(A, a=math.sqrt(5))
     B         nn.Parameter, (out_features, rank).  Starts at zero.
     scaling   alpha / rank, a plain float.
-    dropout   applied to x on its way into the low-rank path, and nowhere else.
+    dropout   an nn.Dropout(dropout), applied to x on its way into the low-rank path,
+              and nowhere else.
 
     Create A and B with the same dtype and on the same device as base.weight.
     The attribute names base, A, B and scaling are fixed: Friday's tests use them.
@@ -52,7 +53,8 @@ class LoRALinear(nn.Module):
 #     def merged(self):
 #         """A new, plain nn.Linear that gives the same answers as this layer:
 #         weight = base weight + scaling * B @ A, and the same bias (or none).
-#         The base layer itself must be left as it was."""
+#         Same device and dtype as the base layer. The base layer itself must be
+#         left as it was."""
 
 
 def inject_lora(model, targets, rank, alpha, dropout=0.0):

@@ -52,7 +52,7 @@ def test_what_each_method_trains(load, tiny_llama):
         result, _ = go(load, method, copy.deepcopy(tiny_llama))
         counts[method] = result
     total = counts["full"]["total"]
-    assert counts["full"]["trainable"] == total == 27040
+    assert counts["full"]["trainable"] == total == 23_840
     assert counts["last_block"]["trainable"] == 10_304         # every parameter of the second of two blocks
     assert counts["lora"]["trainable"] == 1024                 # rank 4 on q_proj and v_proj, two blocks
     assert counts["lora"]["total"] == total + 1024
@@ -74,7 +74,7 @@ def test_last_block_leaves_the_first_block_alone(load, tiny_llama):
     before = copy.deepcopy(tiny_llama.state_dict())
     _, model = go(load, "last_block", tiny_llama)
     after = model.state_dict()
-    assert all(torch.equal(before[k], after[k]) for k in before if "layers.0." in k or "embed" in k)
+    assert all(torch.equal(before[k], after[k]) for k in before if "layers.0." in k or "embed" in k or "lm_head" in k)
     assert any(not torch.equal(before[k], after[k]) for k in before if "layers.1." in k)
 
 

@@ -137,6 +137,21 @@ def test_dropout_only_touches_the_lora_branch():
     assert torch.equal(lora(x), lora(x))
 
 
+def test_dropout_is_on_the_input_not_in_the_middle():
+    # one input feature: dropping x either removes the whole adapter path or doubles it.
+    # Dropout applied after A instead would drop some of the 8 middle values, and give sizes in between.
+    torch.manual_seed(0)
+    base = nn.Linear(1, 1, bias=False)
+    lora = LoRALinear(base, rank=8, alpha=8, dropout=0.5)       # scaling 1
+    with torch.no_grad():
+        base.weight.zero_()
+        lora.A.fill_(1.0)
+        lora.B.fill_(1.0)
+    lora.train()
+    seen = {round(lora(torch.ones(1, 1)).item(), 4) for _ in range(60)}
+    assert seen == {0.0, 16.0}, f"expected the adapter path to be all there (16) or all gone (0), saw {sorted(seen)}"
+
+
 def test_keeps_the_bias_and_works_without_one():
     torch.manual_seed(0)
     x = torch.randn(4, 10)

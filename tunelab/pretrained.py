@@ -15,6 +15,8 @@ class AsCourseModel(nn.Module):
     Compute the loss yourself from those logits, exactly as your GPT does. Do NOT
     pass labels= to the Hugging Face model: it shifts labels by one position
     internally, and your batches are already shifted. Today's README explains.
+
+    Keep the Hugging Face model as self.hf: Friday's notebook reaches it by that name.
     """
 
     def __init__(self, hf_model):
@@ -42,5 +44,5 @@ def load_pretrained(name, revision):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(name, revision=revision)
-    model = AutoModelForCausalLM.from_pretrained(name, revision=revision)
+    model = AutoModelForCausalLM.from_pretrained(name, revision=revision, torch_dtype=torch.float32)
     return AsCourseModel(model), tokenizer

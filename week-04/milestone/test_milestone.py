@@ -35,7 +35,7 @@ def held_out():
 
 def test_sizes():
     assert 500 <= len(train()) <= 1000, f"train has {len(train())} rows; the course asks for 500 to 1000"
-    assert 90 <= len(held_out()) <= 120, f"eval has {len(held_out())} rows; the course asks for about 100"
+    assert 90 <= len(held_out()) <= 150, f"eval has {len(held_out())} rows; the course asks for about 100"
 
 
 def test_every_row_is_well_formed():
@@ -43,6 +43,15 @@ def test_every_row_is_well_formed():
         assert validate(row) == [], f"{row.get('id')}: {validate(row)}"
     ids = [row["id"] for row in train() + held_out()]
     assert len(ids) == len(set(ids)), "every row needs its own id"
+
+
+def test_rows_are_grouped_by_the_seeds_they_came_from():
+    rows = train() + held_out()
+    seeds = {row["id"] for row in rows if row["source"] == "seed"}
+    orphans = sorted({row["seed_id"] for row in rows} - seeds)
+    assert not orphans, f"these seed_ids are not the id of any seed row in your data: {orphans[:5]}"
+    assert len(seeds) >= 40, f"only {len(seeds)} seeds; the course asks for at least 60 before cleaning"
+    assert len(rows) >= 3 * len(seeds), "nearly every row is its own seed: the split and the leak check then mean nothing"
 
 
 def test_no_duplicates_and_no_conflicts():
@@ -70,6 +79,9 @@ def test_the_baseline_covers_every_eval_example():
     predictions = load_jsonl(need("baseline_predictions.jsonl"))
     assert sorted(p["id"] for p in predictions) == sorted(row["id"] for row in held_out())
     assert all(isinstance(p.get("output"), str) and "prediction" in p for p in predictions)
+    from tunelab.toolcall import parse_prediction
+    for p in predictions:
+        assert parse_prediction(p["output"]) == p["prediction"], f'{p["id"]}: the prediction is not what the output parses to'
 
 
 def test_the_baseline_score_is_the_one_the_predictions_give():

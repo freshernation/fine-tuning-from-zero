@@ -43,6 +43,7 @@ from transformers import AutoModelForCausalLM, LlamaConfig
 tiny = AutoModelForCausalLM.from_config(LlamaConfig(
     vocab_size=100, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
     num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=64,
+    tie_word_embeddings=True,
 ))
 print(tiny)
 ```
@@ -67,7 +68,7 @@ diagram.
 
 ### What is different, honestly
 
-Four things. You need one sentence about each this week, not a lecture.
+Five things. You need one sentence about each this week, not a lecture.
 
 - **No position table.** Position is mixed into the queries and keys by rotating them
   ("rotary" embeddings) rather than added at the start. Same job; no `block_size`-row
@@ -79,6 +80,10 @@ Four things. You need one sentence about each this week, not a lecture.
   heads as separate objects because it is clearer. This is the same arithmetic,
   packed.
 - **A three-layer MLP with a gate.** Still "out wide, non-linear, back".
+- **Fewer key and value heads than query heads.** The real model has nine query heads
+  and three key/value heads, shared between them. So `q_proj` is 576 → 576 but
+  `k_proj` and `v_proj` are 576 → 192. You will meet those shapes on Wednesday and
+  Thursday. (The miniature keeps them equal.)
 
 None of these changes what you will do to it this week.
 

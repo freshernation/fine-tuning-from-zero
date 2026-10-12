@@ -63,7 +63,7 @@ be a bug rather than a triumph.**
 
 ## Done means
 
-- [ ] `pytest week-04 -v` — 111 passed
+- [ ] `pytest week-04 -v` — 115 passed
 - [ ] The five files in `data/notes/`, committed
 - [ ] `eval.jsonl` and `eval.sha256` in a commit of their own, made on Thursday
 - [ ] `DATASHEET.md` filled in

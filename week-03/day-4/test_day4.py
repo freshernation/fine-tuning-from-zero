@@ -77,8 +77,9 @@ def test_inject_on_the_pretrained_architecture(tiny_llama):
 
 
 def test_inject_with_no_match_is_an_error(tiny_llama):
-    with pytest.raises(ValueError):
-        inject_lora(tiny_llama, ("q",), rank=2, alpha=4)
+    for piece in ("q", "proj", "_proj", "q_pro"):          # pieces of real names, from either end
+        with pytest.raises(ValueError):
+            inject_lora(tiny_llama, (piece,), rank=2, alpha=4)
 
 
 def test_inject_passes_rank_alpha_and_dropout_through():
@@ -118,6 +119,7 @@ def tuned(rank=2):
     hf = AutoModelForCausalLM.from_config(LlamaConfig(
         vocab_size=100, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
         num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=64,
+        tie_word_embeddings=True,
     ))
     original = copy.deepcopy(hf)
     inject_lora(hf, ("q_proj", "v_proj"), rank=rank, alpha=2 * rank)
@@ -204,6 +206,15 @@ def test_merged_layer_is_a_plain_linear_with_the_same_answers():
         assert type(merged) is nn.Linear and (merged.bias is not None) == bias
         assert torch.allclose(merged(X), lora(X), atol=1e-6)
         assert not torch.equal(merged.weight, lora.base.weight), "the original layer must be left as it was"
+
+
+def test_merged_layer_is_made_like_the_base_layer():
+    # a stand-in for "on the same device": the merged layer must take its dtype from the base
+    lora = LoRALinear(nn.Linear(8, 5).double(), rank=2, alpha=4)
+    merged = lora.merged()
+    assert merged.weight.dtype == torch.float64 and merged.bias.dtype == torch.float64
+    x = torch.randn(3, 8, dtype=torch.float64)
+    assert torch.allclose(merged(x), lora(x))
 
 
 def test_merge_gives_the_same_answers_with_no_adapters_left():

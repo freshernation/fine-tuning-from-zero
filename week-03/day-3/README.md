@@ -187,7 +187,7 @@ out first:
 and `(W + B @ A) x = [3·4 + 1·5, 6·4 + 4·5] = [17, 44]`. Same answer.
 
 Look at that `B @ A`. Its second row is three times its first. However you choose the
-three numbers in `A` and `B`, the rows will always be multiples of each other. That is
+four numbers in `A` and `B`, the rows will always be multiples of each other. That is
 rank 1, and that is the bottleneck made visible.
 
 Work one more yourself, with your own numbers, both ways, before you write any code.

@@ -120,7 +120,10 @@ Then build your data. This is most of the day.
 1. Write at least **60 seeds** in `data/notes/seeds.jsonl`, with a `"template"` on the
    ones that have details worth varying. Run `validate` over all of them.
 2. Expand them, by any mix of the three routes, to somewhere between **700 and 1100
-   rows**. Save as `data/notes/raw.jsonl`. Do not use the twenty rows of `dev.jsonl`.
+   rows**, with **no more than about a dozen rows from any one seed**. (Friday's
+   split moves whole seeds, and a few huge ones make an eval set of the right size
+   impossible.) Seeds with nothing to vary — "what notes do I have?" — need other
+   ways to multiply: different small talk around them, later turns, or a model. Save as `data/notes/raw.jsonl`. Do not use the twenty rows of `dev.jsonl`.
 3. Read fifty. Log the count in `logs/run-log.md`.
 
 ---

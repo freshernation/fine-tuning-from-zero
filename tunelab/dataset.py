@@ -53,6 +53,8 @@ def validate(example):
       - an argument value that is not a "string"
       - none/clarify without a non-empty expected["text"]
       - "messages" is empty, or does not end with a user or tool turn
+      - a message whose role is not system/user/assistant/tool, or whose content
+        is not a string: say which "message"
       - the "id" does not start with the seed_id
     """
     raise NotImplementedError

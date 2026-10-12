@@ -90,6 +90,9 @@ def test_good_examples_have_no_problems():
     (changed(ADD, messages=[]), "messages"),
     (changed(ADD, messages=ADD["messages"] + [{"role": "assistant", "content": "ok"}]), "messages"),
     (changed(ADD, id="x001"), "id"),
+    (changed(ADD, messages=[{"role": "narrator", "content": "Meanwhile"}, ADD["messages"][0]]), "message"),
+    (changed(ADD, messages=[{"role": "user"}]), "message"),
+    (changed(ADD, messages=[{"role": "user", "content": 5}]), "message"),
 ])
 def test_each_rule_catches_its_mistake(bad, word):
     problems = validate(bad)

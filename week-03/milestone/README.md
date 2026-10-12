@@ -70,7 +70,7 @@ diagram from last week.** Show where in the block the adapters sit.
 
 ## Done means
 
-- [ ] `pytest week-03 -v` — 62 passed
+- [ ] `pytest week-03 -v` — 65 passed
 - [ ] `pytest week-01 week-02 -v` — still 82 passed
 - [ ] The Colab notebook ran top to bottom, including the parity tests in cell 3
 - [ ] `WRITEUP.md` filled in, with no blanks

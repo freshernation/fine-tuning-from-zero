@@ -135,8 +135,10 @@ def test_an_edited_eval_set_is_caught_and_not_refrozen(tmp_path):
     recorded = freeze(eval_path, hash_path)
     rows[0]["expected"]["tool"] = "list_titles"                # "fixing" one unfair example
     save_jsonl(eval_path, rows)
-    with pytest.raises(ValueError, match="(?is)restore.*freeze"):
+    with pytest.raises(ValueError) as error:
         check_frozen(eval_path, hash_path)
+    message = str(error.value).lower()
+    assert "restore" in message and "freeze" in message
     assert hash_path.read_text().strip() == recorded, "checking must never rewrite the recorded fingerprint"
     assert load_jsonl(eval_path) == rows, "and must never touch the eval file"
 

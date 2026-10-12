@@ -42,8 +42,8 @@ it is in `starter-agent/`; its `README.md` is five minutes.)
 
 An agent is a loop around one decision, made over and over: **given the conversation
 so far, call a tool — which one, with what arguments — or answer in words.** A large
-hosted model makes that decision well. You are going to teach a model two thousand
-times smaller to make it, and in week 6 you will swap yours in.
+hosted model makes that decision well. You are going to teach a model about a
+thousand times smaller to make it, and in week 6 you will swap yours in.
 
 So one example of the task is one decision:
 
@@ -105,9 +105,19 @@ Real output is messier, and your parser has to have an opinion about each mess:
 
 `parse_prediction`'s docstring says what to do with each, and each has a test. The
 principle behind all of them: **be forgiving about packaging, strict about content,
-and never guess.** An unreadable call is recorded as *invalid*. It is not quietly
-turned into "the model said nothing", because then a model that produces garbage would
-score perfectly on the `none` examples.
+and never guess.** Output that contains the `<tool_call>` marker and cannot be read is
+recorded as *invalid*. It is not quietly turned into "the model said nothing", because
+then a model that writes broken calls would score perfectly on the `none` examples.
+
+Know where that protection stops. The parser only recognises a call that is written
+the model's way, between the markers. A model that writes a call some other way —
+bare JSON, a code block, `add_note(title="milk")` — is recorded as having *answered in
+words*. That is scored wrong wherever a tool was wanted, which is right. It is also
+scored **correct** on every `none` and `clarify` example, which is generous. An
+exact-match grader cannot do better without guessing, so this one does not try. It is
+one more reason to read the wrong answers and not just the numbers: if `valid` is
+high, refusals look perfect and nothing else works, look at what the model is actually
+writing.
 
 ### When are two arguments the same?
 

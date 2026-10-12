@@ -41,6 +41,10 @@ def test_wrapper_exposes_the_pretrained_weights_to_the_optimizer(tiny_llama):
     assert wrapped == sum(p.numel() for p in tiny_llama.parameters()) > 0
 
 
+def test_the_wrapped_model_is_kept_as_hf(tiny_llama):
+    assert AsCourseModel(tiny_llama).hf is tiny_llama, "Friday's notebook reaches the model through .hf"
+
+
 def test_wrapped_model_trains_with_the_week_1_loop(tiny_llama):
     torch.manual_seed(0)
     model = AsCourseModel(tiny_llama)
@@ -58,6 +62,7 @@ def test_layer_table_is_sorted_and_complete(tiny_llama):
     assert counts == sorted(counts, reverse=True)
     assert sum(counts) == sum(p.numel() for p in tiny_llama.parameters())
     assert table[0] == ("model.embed_tokens.weight", (100, 32), 3200)
+    assert not any(name == "lm_head.weight" for name, _, _ in table), "lm_head shares the token table: it is not a second tensor"
 
 
 SYSTEM = {"role": "system", "content": "You are terse."}
