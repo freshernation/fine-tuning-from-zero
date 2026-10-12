@@ -16,7 +16,7 @@ What I think will be hard about it: [ONE SENTENCE]
 
 ## The constraints
 
-- A free Colab T4. One pinned model of about a billion parameters.
+- A free Colab T4. One pinned model of about half a billion parameters.
 - Roughly 500 to 1000 training examples, which I build myself this week.
 - An eval set of about 100 examples, frozen **before** the first training run.
 - **Not allowed:** a bigger model, paid compute, a hosted fine-tuning API, changing
