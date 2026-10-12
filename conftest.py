@@ -48,3 +48,22 @@ def tiny_llama():
         vocab_size=100, hidden_size=32, intermediate_size=64, num_hidden_layers=2,
         num_attention_heads=4, num_key_value_heads=4, max_position_embeddings=64,
     ))
+
+
+@pytest.fixture
+def chat_tokenizer():
+    """A tokenizer with the course base model's REAL chat template and a toy vocabulary.
+
+    Rendering a chat to text only needs the template, so tests can check prompts
+    exactly without downloading the model. Its token ids mean nothing.
+    """
+    from tokenizers import Tokenizer, models, pre_tokenizers
+    from transformers import PreTrainedTokenizerFast
+
+    inner = Tokenizer(models.WordLevel({"<unk>": 0, "<|im_start|>": 1, "<|im_end|>": 2, "<|endoftext|>": 3}, unk_token="<unk>"))
+    inner.pre_tokenizer = pre_tokenizers.Whitespace()
+    tokenizer = PreTrainedTokenizerFast(
+        tokenizer_object=inner, unk_token="<unk>", eos_token="<|im_end|>", pad_token="<|endoftext|>",
+    )
+    tokenizer.chat_template = (ROOT / "data" / "notes" / "chat_template.jinja").read_text()
+    return tokenizer

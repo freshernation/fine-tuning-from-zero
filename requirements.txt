@@ -17,3 +17,8 @@ transformers>=4.46,<4.50; sys_platform == "darwin" and platform_machine == "x86_
 peft>=0.13,<0.15; sys_platform == "darwin" and platform_machine == "x86_64"
 transformers>=4.46; sys_platform != "darwin" or platform_machine != "x86_64"
 peft>=0.13; sys_platform != "darwin" or platform_machine != "x86_64"
+
+# Week 4 - the starter agent's model layer. `openai` is also how week 6 talks to
+# the model you serve yourself. Neither needs a paid account.
+openai>=1.50
+python-dotenv>=1.0
