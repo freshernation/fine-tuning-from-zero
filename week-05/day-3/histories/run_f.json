@@ -1,0 +1,87 @@
+[
+ {
+  "step": 5,
+  "train": 2.4
+ },
+ {
+  "step": 10,
+  "train": 2.1
+ },
+ {
+  "step": 15,
+  "train": 1.7
+ },
+ {
+  "step": 20,
+  "train": 1.5,
+  "eval": 1.6
+ },
+ {
+  "step": 25,
+  "train": 1.3
+ },
+ {
+  "step": 30,
+  "train": 1.2
+ },
+ {
+  "step": 35,
+  "train": NaN
+ },
+ {
+  "step": 40,
+  "train": NaN,
+  "eval": NaN
+ },
+ {
+  "step": 45,
+  "train": NaN
+ },
+ {
+  "step": 50,
+  "train": NaN
+ },
+ {
+  "step": 55,
+  "train": NaN
+ },
+ {
+  "step": 60,
+  "train": NaN,
+  "eval": NaN
+ },
+ {
+  "step": 65,
+  "train": NaN
+ },
+ {
+  "step": 70,
+  "train": NaN
+ },
+ {
+  "step": 75,
+  "train": NaN
+ },
+ {
+  "step": 80,
+  "train": NaN,
+  "eval": NaN
+ },
+ {
+  "step": 85,
+  "train": NaN
+ },
+ {
+  "step": 90,
+  "train": NaN
+ },
+ {
+  "step": 95,
+  "train": NaN
+ },
+ {
+  "step": 100,
+  "train": NaN,
+  "eval": NaN
+ }
+]
